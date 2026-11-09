@@ -615,6 +615,19 @@ const server = http.createServer(async (req, res) => {
       const sub = getSubscription(userId, userType);
       return send(res, 200, sub);
     }
+    // ---------------- DEBUG ENDPOINT ----------------
+    // POST /api/debug/activate-subscription – manually activate a subscription for a test user
+    // Body: { userId: string, userType: "teacher"|"student", planId: string }
+    if (p === '/api/debug/activate-subscription' && req.method === 'POST') {
+      const b = await readJson(req);
+      const { userId, userType, planId } = b;
+      if (!userId || !planId) return send(res, 400, { error: 'userId and planId required' });
+      const payment = { id: 'debug-' + uid(), userId, userType, planId, status: 'paid', paidAt: Date.now() };
+      activateSubscription(payment);
+      db.payments.push(payment);
+      saveDb();
+      return send(res, 200, { ok: true, message: 'Subscription activated for test user' });
+    }
 
     if (p.startsWith('/api/')) return send(res, 404, { error: 'not_found' });
 
