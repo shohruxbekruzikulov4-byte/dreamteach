@@ -929,6 +929,32 @@
     document.querySelector('.top').style.display = '';
     document.getElementById('tabbar').style.display = '';
     indexCatalog(); S.route = parseHash(); render(); refreshOutbox();
+
+    /* add subscription button to header */
+    var topRight = document.querySelector('.top-right');
+    if (topRight && !document.getElementById('subBtn')) {
+      var subBtn = document.createElement('a');
+      subBtn.id = 'subBtn';
+      subBtn.href = '/payment?userType=student';
+      subBtn.style.cssText = 'display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;background:linear-gradient(135deg,#6c63ff,#9b6cff);color:#fff;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap';
+      subBtn.innerHTML = '💳 Obuna';
+      topRight.insertBefore(subBtn, topRight.firstChild);
+      /* check if already subscribed */
+      var studentId = S.profile.studentId || S.profile.device || '';
+      if (studentId) {
+        fetch('/api/subscription/status?userId=' + encodeURIComponent(studentId) + '&userType=student')
+          .then(function(r){ return r.json(); })
+          .then(function(j){
+            if (j.active) {
+              subBtn.innerHTML = '✅ Obuna (' + (j.daysLeft||0) + ' kun)';
+              subBtn.style.background = 'rgba(0,255,148,.15)';
+              subBtn.style.color = 'var(--green, #00ff94)';
+              subBtn.style.border = '1px solid rgba(0,255,148,.3)';
+            }
+          }).catch(function(){});
+      }
+    }
+
     Cloud.detect().then(function () {
       paintStatus();
       if (S.cur) paintChips();

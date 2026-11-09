@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DreamTeach — Obuna</title>
+<meta name="theme-color" content="#0a1628">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #07101f; --bg2: #0d1a2f; --card: rgba(255,255,255,0.05);
+  --border: rgba(255,255,255,0.09); --accent: #6c63ff; --accent2: #00e5ff;
+  --green: #00ff94; --red: #ff4f6a; --yellow: #ffd700; --text: #e8eaf6; --muted: #7a8498;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { min-height: 100%; font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); }
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: -1;
+  background: radial-gradient(ellipse 70% 50% at 10% 5%, rgba(108,99,255,.14) 0%, transparent 60%),
+              radial-gradient(ellipse 50% 40% at 90% 90%, rgba(0,229,255,.08) 0%, transparent 60%), var(--bg);
+}
+.wrap { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 32px 16px 60px; }
+.logo-row { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; }
+.logo-mark { width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg,var(--accent),var(--accent2)); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800; color: #fff; box-shadow: 0 4px 20px rgba(108,99,255,.4); }
+.logo-name { font-size: 22px; font-weight: 700; }
+.logo-name span { color: var(--accent2); }
+
+h1 { font-size: 28px; font-weight: 800; text-align: center; margin-bottom: 8px; }
+.sub { color: var(--muted); text-align: center; margin-bottom: 40px; font-size: 15px; }
+
+/* Toggle */
+.toggle-wrap { display: flex; background: rgba(255,255,255,.06); border: 1px solid var(--border); border-radius: 12px; padding: 4px; gap: 4px; margin-bottom: 32px; }
+.toggle-btn { flex: 1; padding: 10px 20px; border-radius: 9px; border: none; background: transparent; color: var(--muted); font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all .2s; }
+.toggle-btn.active { background: var(--accent); color: #fff; }
+
+/* Plans grid */
+.plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; width: 100%; max-width: 640px; margin-bottom: 32px; }
+.plan-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 28px 24px;
+  cursor: pointer; transition: all .2s; position: relative; overflow: hidden;
+}
+.plan-card:hover { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.plan-card.selected { border-color: var(--accent2); box-shadow: 0 0 0 2px var(--accent2); }
+.plan-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg,var(--accent),var(--accent2)); border-radius: 999px 999px 0 0; opacity: 0; transition: opacity .2s; }
+.plan-card.selected::before { opacity: 1; }
+.plan-badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; background: rgba(0,229,255,.12); color: var(--accent2); margin-bottom: 12px; }
+.plan-name { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+.plan-price { font-size: 32px; font-weight: 800; color: var(--accent2); margin-bottom: 4px; }
+.plan-price span { font-size: 14px; color: var(--muted); font-weight: 500; }
+.plan-period { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+.plan-features { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.plan-features li { font-size: 13px; display: flex; align-items: center; gap: 8px; }
+.plan-features li::before { content: '✓'; color: var(--green); font-weight: 700; flex-shrink: 0; }
+
+/* Payment section */
+.pay-section { width: 100%; max-width: 640px; }
+.pay-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.pay-methods { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 480px) { .pay-methods { grid-template-columns: 1fr; } }
+.pay-btn {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 16px 24px; border-radius: 14px; border: 1px solid var(--border);
+  background: rgba(255,255,255,.05); font-size: 15px; font-weight: 700;
+  cursor: pointer; font-family: inherit; transition: all .2s; text-decoration: none; color: var(--text);
+}
+.pay-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.3); }
+.pay-btn.payme { border-color: rgba(0,160,220,.4); background: rgba(0,160,220,.08); color: #00a0dc; }
+.pay-btn.payme:hover { background: rgba(0,160,220,.15); }
+.pay-btn.click  { border-color: rgba(0,164,97,.4);  background: rgba(0,164,97,.08);  color: #00a461; }
+.pay-btn.click:hover  { background: rgba(0,164,97,.15); }
+.pay-btn img { width: 28px; height: 28px; object-fit: contain; }
+.pay-btn:disabled { opacity: .5; cursor: not-allowed; transform: none !important; }
+
+.info-box { margin-top: 24px; padding: 16px; background: rgba(108,99,255,.07); border: 1px solid rgba(108,99,255,.2); border-radius: 12px; font-size: 13px; color: var(--muted); line-height: 1.6; }
+.info-box b { color: var(--text); }
+
+/* spinner */
+.spin { display: inline-block; width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+.anim { animation: fadeUp .35s ease both; }
+
+/* Success page */
+.success-wrap { text-align: center; padding: 40px 20px; }
+.success-icon { font-size: 72px; margin-bottom: 20px; }
+.success-title { font-size: 28px; font-weight: 800; color: var(--green); margin-bottom: 10px; }
+.success-sub { color: var(--muted); margin-bottom: 32px; font-size: 15px; }
+.back-btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 28px; border-radius: 12px; background: linear-gradient(135deg,var(--accent),#9b6cff); color: #fff; font-size: 15px; font-weight: 700; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo-row">
+    <div class="logo-mark">D</div>
+    <div class="logo-name">Dream<span>Teach</span></div>
+  </div>
+  <div id="app" class="anim"></div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var API = location.origin;
+  var params = new URLSearchParams(location.search);
+  var userId   = params.get('userId')   || localStorage.getItem('dt_teacher_id') || localStorage.getItem('dt_student_id') || '';
+  var userType = params.get('userType') || (localStorage.getItem('dt_teacher_id') ? 'teacher' : 'student');
+  var order    = params.get('order')    || '';
+  var app      = document.getElementById('app');
+
+  var S = { tab: 'monthly', selectedPlan: null, plans: [], loading: false };
+
+  /* ---- Success page ---- */
+  if (location.pathname === '/payment/success' && order) {
+    showSuccess(); return;
+  }
+  if (location.pathname === '/payment/demo') {
+    showDemo(); return;
+  }
+
+  loadPlans();
+
+  function loadPlans() {
+    app.innerHTML = '<div style="text-align:center;padding:40px"><span class="spin"></span></div>';
+    fetch(API + '/api/plans').then(function(r){ return r.json(); }).then(function(j){
+      S.plans = j.plans || [];
+      render();
+    }).catch(function(){ app.innerHTML = '<p style="color:var(--red);text-align:center">Plans yuklanmadi. Qayta urining.</p>'; });
+  }
+
+  function getPlansForTab() {
+    var prefix = userType === 'teacher' ? 'teacher_' : 'student_';
+    return S.plans.filter(function(p){ return p.id.startsWith(prefix); });
+  }
+
+  function formatSom(tiyin) {
+    var s = Math.round(tiyin / 100);
+    return s.toLocaleString('uz-UZ') + " so'm";
+  }
+
+  function render() {
+    var plans = getPlansForTab();
+    var tabLabel = userType === 'teacher' ? "O'qituvchi" : "O'quvchi";
+
+    app.innerHTML =
+      '<h1>' + (userType==='teacher' ? "O'qituvchi obunasi" : "O'quvchi obunasi") + '</h1>' +
+      '<p class="sub">Platformadan to\'liq foydalanish uchun obuna oling</p>' +
+
+      '<div class="toggle-wrap">' +
+        '<button class="toggle-btn' + (S.tab==='monthly'?' active':'') + '" id="tabMonthly">📅 Oylik</button>' +
+        '<button class="toggle-btn' + (S.tab==='yearly'?' active':'')  + '" id="tabYearly">🗓️ Yillik <span style="font-size:11px;background:rgba(0,255,148,.15);color:var(--green);padding:2px 6px;border-radius:6px">-20%</span></button>' +
+      '</div>' +
+
+      '<div class="plans" id="plansGrid">' +
+        plans.filter(function(p){ return S.tab==='monthly' ? p.id.includes('monthly') : p.id.includes('yearly'); })
+          .map(function(p) {
+            var sel = S.selectedPlan === p.id;
+            return '<div class="plan-card'+(sel?' selected':'')+'" data-plan="'+p.id+'">' +
+              '<div class="plan-badge">' + (p.id.includes('yearly') ? 'Yillik' : 'Oylik') + '</div>' +
+              '<div class="plan-name">'+p.label+'</div>' +
+              '<div class="plan-price">'+formatSom(p.amount)+' <span>/ '+(p.period===30?'oy':'yil')+'</span></div>' +
+              '<div class="plan-period">'+(p.period===30 ? '30 kun muddatga' : '365 kun muddatga')+'</div>' +
+              '<ul class="plan-features">' +
+                (userType==='teacher' ? [
+                  'Kurslar joylashtirish',
+                  "AI imtihon o'tish",
+                  'Dashboard va statistika',
+                  'Cheksiz video yuklash'
+                ] : [
+                  'Barcha kurslarga kirish',
+                  'AI ustoz bilan suhbat',
+                  'Quiz va testlar',
+                  'Offline rejim'
+                ]).map(function(f){ return '<li>'+f+'</li>'; }).join('') +
+              '</ul>' +
+            '</div>';
+          }).join('') +
+      '</div>' +
+
+      '<div class="pay-section" id="paySection" style="display:'+(S.selectedPlan?'block':'none')+'">' +
+        '<div class="pay-title">To\'lov usulini tanlang</div>' +
+        '<div class="pay-methods">' +
+          '<button class="pay-btn payme" id="paymeBtn" '+(S.selectedPlan?'':'disabled')+'>' +
+            '<span style="font-size:22px">💳</span> Payme' +
+          '</button>' +
+          '<button class="pay-btn click" id="clickBtn" '+(S.selectedPlan?'':'disabled')+'>' +
+            '<span style="font-size:22px">📱</span> Click' +
+          '</button>' +
+        '</div>' +
+        '<div class="info-box">' +
+          '🔒 To\'lov xavfsizligi ta\'minlangan. ' +
+          'Payme yoki Click orqali to\'lashingiz mumkin. ' +
+          'To\'lovdan so\'ng obuna avtomatik faollashadi.' +
+        '</div>' +
+      '</div>';
+
+    // events
+    document.getElementById('tabMonthly').onclick = function(){ S.tab='monthly'; S.selectedPlan=null; render(); };
+    document.getElementById('tabYearly').onclick  = function(){ S.tab='yearly';  S.selectedPlan=null; render(); };
+
+    document.querySelectorAll('.plan-card').forEach(function(el) {
+      el.onclick = function() {
+        S.selectedPlan = el.dataset.plan;
+        render();
+      };
+    });
+
+    var paymeBtn = document.getElementById('paymeBtn');
+    var clickBtn = document.getElementById('clickBtn');
+    if (paymeBtn) paymeBtn.onclick = function(){ pay('payme'); };
+    if (clickBtn) clickBtn.onclick = function(){ pay('click'); };
+  }
+
+  function pay(method) {
+    if (!S.selectedPlan) return;
+    if (!userId) {
+      alert("Iltimos, avval tizimga kiring (teacher.html yoki bosh sahifa orqali).");
+      return;
+    }
+    var btn = document.getElementById(method === 'payme' ? 'paymeBtn' : 'clickBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spin"></span> Yuklanmoqda…';
+
+    fetch(API + '/api/payment/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ planId: S.selectedPlan, userId: userId, userType: userType })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(j){
+      if (!j.ok) { alert(j.error || "Xato yuz berdi"); btn.disabled=false; btn.innerHTML = method==='payme' ? '💳 Payme' : '📱 Click'; return; }
+      var url = method === 'payme' ? j.paymeUrl : j.clickUrl;
+      location.href = url;
+    })
+    .catch(function(){ alert("Server bilan bog'lanishda xato"); btn.disabled=false; btn.innerHTML = method==='payme' ? '💳 Payme' : '📱 Click'; });
+  }
+
+  function showSuccess() {
+    // Check actual payment status
+    app.innerHTML = '<div class="success-wrap"><div class="spin" style="width:40px;height:40px;border-width:3px"></div></div>';
+    fetch(API + '/api/payment/status/' + order).then(function(r){ return r.json(); }).then(function(j){
+      if (j.status === 'paid') {
+        app.innerHTML = '<div class="success-wrap anim">' +
+          '<div class="success-icon">🎉</div>' +
+          '<div class="success-title">To\'lov muvaffaqiyatli!</div>' +
+          '<p class="success-sub">Obuna faollashtirildi.<br>'+( j.plan ? '<b>'+j.plan+'</b>' : '' )+'</p>' +
+          '<a href="/" class="back-btn">🏠 Bosh sahifaga qaytish</a>' +
+        '</div>';
+      } else {
+        app.innerHTML = '<div class="success-wrap anim">' +
+          '<div class="success-icon">⏳</div>' +
+          '<div class="success-title" style="color:var(--yellow)">Kutilmoqda…</div>' +
+          '<p class="success-sub">To\'lov tekshirilmoqda. Biroz kuting.</p>' +
+          '<a href="/" class="back-btn">🏠 Bosh sahifaga qaytish</a>' +
+        '</div>';
+      }
+    }).catch(function(){
+      app.innerHTML = '<div class="success-wrap anim">' +
+        '<div class="success-icon">✅</div>' +
+        '<div class="success-title">Rahmat!</div>' +
+        '<p class="success-sub">To\'lovingiz qabul qilindi.</p>' +
+        '<a href="/" class="back-btn">🏠 Bosh sahifaga qaytish</a>' +
+      '</div>';
+    });
+  }
+
+  function showDemo() {
+    var method = params.get('method') || 'payme';
+    app.innerHTML = '<div class="success-wrap anim">' +
+      '<div class="success-icon">🧪</div>' +
+      '<div class="success-title" style="color:var(--accent2)">Demo rejim</div>' +
+      '<p class="success-sub">'+( method==='payme' ? 'Payme' : 'Click' )+' sozlanmagan (merchant ID kiritilmagan).<br>' +
+        'Haqiqiy to\'lov uchun Railway\'da <b>PAYME_MERCHANT_ID</b> yoki <b>CLICK_SERVICE_ID</b> sozlang.</p>' +
+      '<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:16px">' +
+        '<a href="/" class="back-btn">🏠 Bosh sahifaga qaytish</a>' +
+      '</div>' +
+    '</div>';
+  }
+})();
+</script>
+</body>
+</html>

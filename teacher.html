@@ -738,6 +738,10 @@ body::before {
     var t = S.teacher || {};
     var totalLessons = myLessons.length;
     var uploaded = myLessons.filter(function(l){ return l.status==='uploaded'; }).length;
+    var sub = S.subscription || { active: false };
+    var subBadge = sub.active
+      ? '<span class="chip ok" style="font-size:11px">✅ Obuna: ' + (sub.daysLeft||0) + ' kun</span>'
+      : '<a href="/payment?userId='+esc(S.teacherId)+'&userType=teacher" style="text-decoration:none"><span class="chip" style="background:rgba(255,215,0,.12);color:var(--yellow);font-size:11px;cursor:pointer">💳 Obuna olish</span></a>';
 
     app.innerHTML = '<div class="panel anim" style="max-width:720px">' +
       '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">' +
@@ -745,8 +749,18 @@ body::before {
           '<div class="panel-title" style="margin-bottom:0">Salom, '+esc(t.name||'O\'qituvchi')+'! 👋</div>' +
           '<p style="font-size:13px;color:var(--muted)">'+esc(t.specialty||'')+'</p>' +
         '</div>' +
-        '<span class="chip ok">✅ Tasdiqlangan</span>' +
+        '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">' +
+          '<span class="chip ok">✅ Tasdiqlangan</span>' +
+          subBadge +
+        '</div>' +
       '</div>' +
+
+      (sub.active ? '' :
+        '<div style="margin-bottom:20px;padding:14px 18px;background:rgba(255,215,0,.07);border:1px solid rgba(255,215,0,.2);border-radius:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">' +
+          '<div><b style="color:var(--yellow)">⚠️ Obuna faol emas</b><br><span style="font-size:13px;color:var(--muted)">Kurs joylashtirish uchun obuna kerak</span></div>' +
+          '<a href="/payment?userId='+esc(S.teacherId)+'&userType=teacher" style="text-decoration:none;white-space:nowrap;padding:10px 18px;background:linear-gradient(135deg,var(--accent),#9b6cff);color:#fff;border-radius:10px;font-weight:700;font-size:14px">💳 Obuna olish</a>' +
+        '</div>'
+      ) +
 
       '<div class="db-kpis">' +
         '<div class="db-kpi c-purple"><span class="v">'+totalLessons+'</span><span class="l">Jami darslar</span></div>' +
@@ -756,8 +770,8 @@ body::before {
       '</div>' +
 
       '<div class="db-tabs">' +
-        '<button class="db-tab'+(S.dashTab==='publish'?' active':'') +'" data-tab="publish">📤 Dars yuklash</button>' +
-        '<button class="db-tab'+(S.dashTab==='lessons'?' active':'') +'" data-tab="lessons">📚 Darslarim</button>' +
+        '<button class="db-tab'+(S.dashTab==='publish'?' active':'')+'" data-tab="publish">📤 Dars yuklash</button>' +
+        '<button class="db-tab'+(S.dashTab==='lessons'?' active':'')+'" data-tab="lessons">📚 Darslarim</button>' +
       '</div>' +
 
       '<div id="dashContent"></div>' +
@@ -886,8 +900,17 @@ body::before {
       fetch(API + '/api/teacher/status/' + S.teacherId)
         .then(function(r){ return r.json(); })
         .then(function(j){
-          if (j.id) { S.teacher = j; routeByStatus(j.status); }
-          else showLogin();
+          if (j.id) {
+            S.teacher = j;
+            // Also load subscription status
+            return fetch(API + '/api/subscription/status?userId=' + S.teacherId + '&userType=teacher')
+              .then(function(r){ return r.json(); })
+              .then(function(sub){ S.subscription = sub; })
+              .catch(function(){})
+              .then(function(){ routeByStatus(j.status); });
+          } else {
+            showLogin();
+          }
         })
         .catch(function(){ showLogin(); });
     } else {

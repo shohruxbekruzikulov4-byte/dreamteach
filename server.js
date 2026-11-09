@@ -19,12 +19,29 @@ const MAX_UPLOAD = 300 * 1024 * 1024;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Analog11@';
 const ADMIN_TOKEN = 'adt-' + Buffer.from(ADMIN_PASSWORD + ':dreamteach').toString('base64');
 
+/* ---- Payment config ---- */
+const PAYME_ID       = process.env.PAYME_MERCHANT_ID   || '';
+const PAYME_KEY      = process.env.PAYME_SECRET_KEY     || '';
+const CLICK_SID      = process.env.CLICK_SERVICE_ID     || '';
+const CLICK_MERCHANT = process.env.CLICK_MERCHANT_ID    || '';
+const CLICK_KEY      = process.env.CLICK_SECRET_KEY     || '';
+const SITE_URL       = process.env.SITE_URL             || 'https://dreamteach-production.up.railway.app';
+
+/* subscription plans (in tiyin for Payme, so'm for display) */
+const PLANS = {
+  teacher_monthly:  { label: "O'qituvchi oylik",    amount: 9900000,  period: 30  },
+  teacher_yearly:   { label: "O'qituvchi yillik",   amount: 79000000, period: 365 },
+  student_monthly:  { label: "O'quvchi oylik",       amount: 4900000,  period: 30  },
+  student_yearly:   { label: "O'quvchi yillik",      amount: 39000000, period: 365 }
+};
+
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 const DB_FILE = path.join(DATA_DIR, 'db.json');
-let db = { events: [], seen: {}, devices: {}, lessons: [], teachers: [], students: [] };
+let db = { events: [], seen: {}, devices: {}, lessons: [], teachers: [], students: [], payments: [] };
 try { db = Object.assign(db, JSON.parse(fs.readFileSync(DB_FILE, 'utf8'))); } catch (e) { /* first run */ }
-if (!db.teachers) db.teachers = [];
-if (!db.students) db.students = [];
+if (!db.teachers)  db.teachers  = [];
+if (!db.students)  db.students  = [];
+if (!db.payments)  db.payments  = [];
 let saveT = null;
 function saveDb() {
   clearTimeout(saveT);
@@ -191,6 +208,36 @@ const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 
 function checkAdmin(req) {
   const auth = req.headers['authorization'] || '';
   return auth === `Bearer ${ADMIN_TOKEN}`;
+}
+
+/* ---- Subscription helpers ---- */
+function activateSubscription(payment) {
+  const plan = PLANS[payment.planId];
+  if (!plan) return;
+  const expiresAt = Date.now() + plan.period * 24 * 3600 * 1000;
+  if (payment.userType === 'teacher') {
+    const teacher = db.teachers.find(t => t.id === payment.userId);
+    if (teacher) { teacher.subscriptionPlan = payment.planId; teacher.subscriptionExpires = expiresAt; teacher.updatedAt = Date.now(); }
+  } else {
+    const student = db.students.find(s => s.id === payment.userId);
+    if (student) { student.subscriptionPlan = payment.planId; student.subscriptionExpires = expiresAt; }
+  }
+}
+
+function getSubscription(userId, userType) {
+  let user = null;
+  if (userType === 'teacher') user = db.teachers.find(t => t.id === userId);
+  else user = db.students.find(s => s.id === userId);
+  if (!user) return { active: false, plan: null, expiresAt: null };
+  const active = user.subscriptionExpires && user.subscriptionExpires > Date.now();
+  const plan = PLANS[user.subscriptionPlan];
+  return {
+    active: !!active,
+    plan: user.subscriptionPlan || null,
+    planLabel: plan ? plan.label : null,
+    expiresAt: user.subscriptionExpires || null,
+    daysLeft: active ? Math.ceil((user.subscriptionExpires - Date.now()) / 86400000) : 0
+  };
 }
 
 function serveFile(req, res, file) {
@@ -429,13 +476,156 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, { ok: true, teacher: { id, status: 'pending_exam' } });
     }
 
+    /* ============================================================
+       PAYMENT API
+    ============================================================ */
+
+    // GET /api/plans — return subscription plans
+    if (p === '/api/plans' && req.method === 'GET') {
+      const plans = Object.entries(PLANS).map(([id, pl]) => ({
+        id, label: pl.label,
+        amount: pl.amount,            // tiyin
+        amountSom: Math.round(pl.amount / 100),
+        period: pl.period
+      }));
+      return send(res, 200, { plans });
+    }
+
+    // POST /api/payment/create — create a payment order and return Payme + Click checkout URLs
+    if (p === '/api/payment/create' && req.method === 'POST') {
+      const b = await readJson(req);
+      const { planId, userId, userType } = b; // userType: 'teacher' | 'student'
+      const plan = PLANS[planId];
+      if (!plan) return send(res, 400, { error: "Noto'g'ri tarif" });
+      if (!userId) return send(res, 400, { error: 'userId kerak' });
+
+      const orderId = 'pay-' + uid();
+      const payment = {
+        id: orderId, planId, userId, userType: userType || 'student',
+        amount: plan.amount, status: 'pending',
+        createdAt: Date.now(), paidAt: null
+      };
+      db.payments.push(payment);
+      saveDb();
+
+      // --- Payme checkout URL ---
+      const paymeParams = Buffer.from(JSON.stringify({
+        m: PAYME_ID, ac: { order_id: orderId }, a: plan.amount, l: 'uz',
+        c: `${SITE_URL}/api/payment/payme/callback`,
+        cr: `${SITE_URL}/payment/success?order=${orderId}`
+      })).toString('base64');
+      const paymeUrl = PAYME_ID
+        ? `https://checkout.paycom.uz/${paymeParams}`
+        : `${SITE_URL}/payment/demo?order=${orderId}&method=payme`;
+
+      // --- Click checkout URL ---
+      const clickUrl = CLICK_SID && CLICK_MERCHANT
+        ? `https://my.click.uz/services/pay?service_id=${CLICK_SID}&merchant_id=${CLICK_MERCHANT}&amount=${Math.round(plan.amount / 100)}&transaction_param=${orderId}&return_url=${encodeURIComponent(SITE_URL + '/payment/success?order=' + orderId)}`
+        : `${SITE_URL}/payment/demo?order=${orderId}&method=click`;
+
+      return send(res, 200, { ok: true, orderId, paymeUrl, clickUrl, amount: plan.amount, amountSom: Math.round(plan.amount / 100), plan: plan.label });
+    }
+
+    // POST /api/payment/payme/callback — Payme server-to-server notifications
+    if (p === '/api/payment/payme/callback' && req.method === 'POST') {
+      const b = await readJson(req);
+      // Basic auth check
+      const auth = req.headers['authorization'] || '';
+      const expectedAuth = 'Basic ' + Buffer.from(`Paycom:${PAYME_KEY}`).toString('base64');
+      if (PAYME_KEY && auth !== expectedAuth) return send(res, 200, { error: { code: -32504, message: 'Insufficient privilege' } });
+
+      const method = b.method;
+      const params = b.params || {};
+      const orderId = (params.account && params.account.order_id) || '';
+      const payment = orderId ? db.payments.find(p => p.id === orderId) : null;
+
+      if (method === 'CheckPerformTransaction') {
+        if (!payment) return send(res, 200, { result: { allow: false }, id: b.id });
+        return send(res, 200, { result: { allow: true }, id: b.id });
+      }
+      if (method === 'CreateTransaction') {
+        if (!payment) return send(res, 200, { error: { code: -31050, message: 'Order not found' }, id: b.id });
+        payment.paymeTransactionId = params.id;
+        payment.status = 'created';
+        saveDb();
+        return send(res, 200, { result: { create_time: Date.now(), transaction: params.id, state: 1 }, id: b.id });
+      }
+      if (method === 'PerformTransaction') {
+        if (!payment) return send(res, 200, { error: { code: -31050, message: 'Order not found' }, id: b.id });
+        payment.status = 'paid'; payment.paidAt = Date.now();
+        activateSubscription(payment);
+        saveDb();
+        return send(res, 200, { result: { transaction: params.id, perform_time: Date.now(), state: 2 }, id: b.id });
+      }
+      if (method === 'CancelTransaction') {
+        if (payment && payment.status !== 'paid') { payment.status = 'cancelled'; saveDb(); }
+        return send(res, 200, { result: { transaction: params.id, cancel_time: Date.now(), state: -1 }, id: b.id });
+      }
+      if (method === 'CheckTransaction') {
+        if (!payment) return send(res, 200, { error: { code: -31050, message: 'Order not found' }, id: b.id });
+        const stateMap = { pending: 1, created: 1, paid: 2, cancelled: -1 };
+        return send(res, 200, { result: { create_time: payment.createdAt, perform_time: payment.paidAt || 0, cancel_time: 0, transaction: payment.paymeTransactionId || '', state: stateMap[payment.status] || 1 }, id: b.id });
+      }
+      return send(res, 200, { error: { code: -32601, message: 'Method not found' }, id: b.id });
+    }
+
+    // POST /api/payment/click/prepare — Click prepare step
+    if (p === '/api/payment/click/prepare' && req.method === 'POST') {
+      const b = await readJson(req);
+      const { click_trans_id, merchant_trans_id, amount, sign_time, sign_string } = b;
+      const orderId = merchant_trans_id;
+      const payment = orderId ? db.payments.find(p => p.id === orderId) : null;
+      if (!payment) return send(res, 200, { error: -5, error_note: 'User not found' });
+      const expectSign = crypto.createHash('md5').update(`${click_trans_id}${CLICK_SID}${CLICK_KEY}${orderId}${amount}${0}${sign_time}`).digest('hex');
+      if (CLICK_KEY && sign_string !== expectSign) return send(res, 200, { error: -1, error_note: 'SIGN CHECK FAILED' });
+      payment.clickTransId = click_trans_id;
+      saveDb();
+      return send(res, 200, { click_trans_id, merchant_trans_id, merchant_prepare_id: orderId, error: 0, error_note: 'Success' });
+    }
+
+    // POST /api/payment/click/complete — Click complete step
+    if (p === '/api/payment/click/complete' && req.method === 'POST') {
+      const b = await readJson(req);
+      const { click_trans_id, merchant_trans_id, merchant_prepare_id, amount, sign_time, sign_string, error } = b;
+      const orderId = merchant_trans_id;
+      const payment = orderId ? db.payments.find(p => p.id === orderId) : null;
+      if (!payment) return send(res, 200, { error: -5, error_note: 'User not found' });
+      if (error < 0) { payment.status = 'cancelled'; saveDb(); return send(res, 200, { click_trans_id, merchant_trans_id, merchant_confirm_id: orderId, error: 0, error_note: 'Cancelled' }); }
+      const expectSign = crypto.createHash('md5').update(`${click_trans_id}${CLICK_SID}${CLICK_KEY}${orderId}${amount}${merchant_prepare_id}${sign_time}`).digest('hex');
+      if (CLICK_KEY && sign_string !== expectSign) return send(res, 200, { error: -1, error_note: 'SIGN CHECK FAILED' });
+      payment.status = 'paid'; payment.paidAt = Date.now();
+      activateSubscription(payment);
+      saveDb();
+      return send(res, 200, { click_trans_id, merchant_trans_id, merchant_confirm_id: orderId, error: 0, error_note: 'Success' });
+    }
+
+    // GET /api/payment/status/:orderId
+    if (p.match(/^\/api\/payment\/status\/[^/]+$/) && req.method === 'GET') {
+      const orderId = safeId(p.split('/')[4]);
+      const payment = db.payments.find(x => x.id === orderId);
+      if (!payment) return send(res, 404, { error: 'Topilmadi' });
+      return send(res, 200, { status: payment.status, paidAt: payment.paidAt, plan: PLANS[payment.planId]?.label });
+    }
+
+    // GET /api/subscription/status?userId=...&userType=...
+    if (p === '/api/subscription/status' && req.method === 'GET') {
+      const userId = safeId(url.searchParams.get('userId') || '');
+      const userType = url.searchParams.get('userType') || 'student';
+      if (!userId) return send(res, 400, { error: 'userId kerak' });
+      const sub = getSubscription(userId, userType);
+      return send(res, 200, sub);
+    }
+
     if (p.startsWith('/api/')) return send(res, 404, { error: 'not_found' });
 
     // static files
     let rel = decodeURIComponent(p);
     if (rel === '/' || rel === '') rel = '/index.html';
-    if (rel === '/admin') rel = '/admin.html';
-    if (rel === '/teacher') rel = '/teacher.html';
+    if (rel === '/admin')           rel = '/admin.html';
+    if (rel === '/teacher')         rel = '/teacher.html';
+    if (rel === '/payment')         rel = '/payment.html';
+    if (rel === '/payment/success') rel = '/payment.html';
+    if (rel === '/payment/demo')    rel = '/payment.html';
     if (rel.startsWith('/uploads/')) return serveFile(req, res, path.join(UPLOAD_DIR, path.basename(rel)));
     const file = path.normalize(path.join(ROOT, rel));
     if (!file.startsWith(ROOT) || /[\\/](server-data|node_modules|\.git)([\\/]|$)/.test(file) || path.basename(file) === 'server.js') return send(res, 404, { error: 'not_found' });
