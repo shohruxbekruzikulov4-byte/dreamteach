@@ -5,6 +5,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const Engine = require('./js/engine.js');
 
 const PORT = +process.env.PORT || 8080;
@@ -20,9 +21,10 @@ const ADMIN_TOKEN = 'adt-' + Buffer.from(ADMIN_PASSWORD + ':dreamteach').toStrin
 
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 const DB_FILE = path.join(DATA_DIR, 'db.json');
-let db = { events: [], seen: {}, devices: {}, lessons: [], teachers: [] };
+let db = { events: [], seen: {}, devices: {}, lessons: [], teachers: [], students: [] };
 try { db = Object.assign(db, JSON.parse(fs.readFileSync(DB_FILE, 'utf8'))); } catch (e) { /* first run */ }
 if (!db.teachers) db.teachers = [];
+if (!db.students) db.students = [];
 let saveT = null;
 function saveDb() {
   clearTimeout(saveT);
@@ -432,6 +434,8 @@ const server = http.createServer(async (req, res) => {
     // static files
     let rel = decodeURIComponent(p);
     if (rel === '/' || rel === '') rel = '/index.html';
+    if (rel === '/admin') rel = '/admin.html';
+    if (rel === '/teacher') rel = '/teacher.html';
     if (rel.startsWith('/uploads/')) return serveFile(req, res, path.join(UPLOAD_DIR, path.basename(rel)));
     const file = path.normalize(path.join(ROOT, rel));
     if (!file.startsWith(ROOT) || /[\\/](server-data|node_modules|\.git)([\\/]|$)/.test(file) || path.basename(file) === 'server.js') return send(res, 404, { error: 'not_found' });
