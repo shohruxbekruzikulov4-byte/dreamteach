@@ -1,0 +1,416 @@
+{
+ "version": 3,
+ "courses": [
+  {
+   "id": "ai-asoslari",
+   "title": "Sun’iy intellekt asoslari",
+   "author": "Dilnoza Karimova",
+   "level": "Boshlang‘ich",
+   "color": "#00E5FF",
+   "icon": "spark",
+   "about": "AI qanday ishlashini oddiy tilda tushuntiramiz va ishda prompt orqali foydalanishni o‘rgatamiz.",
+   "lessons": [
+    {
+     "id": "ai-1",
+     "title": "Sun’iy intellekt nima?",
+     "duration": 102,
+     "terms": [
+      "sun’iy intellekt",
+      "ma’lumot",
+      "generativ AI",
+      "til modeli",
+      "gallyutsinatsiya",
+      "bashorat",
+      "manba"
+     ],
+     "segments": [
+      {
+       "t": 0,
+       "text": "Salom! Bu darsda sun’iy intellekt nima ekanini oddiy tilda tushuntiramiz."
+      },
+      {
+       "t": 10,
+       "text": "Sun’iy intellekt — bu kompyuterning odamga o‘xshab o‘rganish, tushunish va qaror qabul qilish qobiliyati."
+      },
+      {
+       "t": 21,
+       "text": "Sun’iy intellekt ma’lumotlardan o‘rganadi. Qancha ko‘p sifatli ma’lumot bo‘lsa, natija shuncha aniq bo‘ladi."
+      },
+      {
+       "t": 33,
+       "text": "Masalan, telefon kamerangiz yuzingizni taniydi. Bu ham sun’iy intellektning bir turi."
+      },
+      {
+       "t": 44,
+       "text": "Generativ AI esa yangi narsa yaratadi: matn, rasm, hatto musiqa."
+      },
+      {
+       "t": 55,
+       "text": "ChatGPT, Gemini va Claude kabi til modellari generativ AIga misol bo‘ladi."
+      },
+      {
+       "t": 66,
+       "text": "Til modeli millionlab matnlarni o‘qib, keyingi so‘zni bashorat qilishni o‘rganadi."
+      },
+      {
+       "t": 78,
+       "text": "Lekin AI ham xato qiladi. U ba’zan ishonch bilan noto‘g‘ri javob beradi, buni gallyutsinatsiya deyiladi."
+      },
+      {
+       "t": 90,
+       "text": "Shuning uchun AI javobini doim manba bilan tekshiring. Keyingi darsda prompt yozishni o‘rganamiz."
+      }
+     ],
+     "video": "media/ai-1.mp4",
+     "poster": "media/ai-1.jpg",
+     "sizeKB": 204
+    },
+    {
+     "id": "ai-2",
+     "title": "Prompt yozish sirlari",
+     "duration": 100,
+     "terms": [
+      "prompt",
+      "rol",
+      "vazifa",
+      "kontekst",
+      "natija formati",
+      "misol",
+      "iteratsiya",
+      "auditoriya"
+     ],
+     "segments": [
+      {
+       "t": 0,
+       "text": "Prompt — bu AIga beriladigan topshiriq yoki savol. Natija sifati promptga bog‘liq."
+      },
+      {
+       "t": 11,
+       "text": "Yaxshi prompt to‘rt qismdan iborat: rol, vazifa, kontekst va natija formati."
+      },
+      {
+       "t": 22,
+       "text": "Rol — AIga kim bo‘lib javob berishini ayting. Masalan: siz tajribali marketologsiz."
+      },
+      {
+       "t": 33,
+       "text": "Vazifa — aniq nima qilish kerakligini yozing: post yozing, xatoni toping, reja tuzing."
+      },
+      {
+       "t": 44,
+       "text": "Kontekst — kerakli ma’lumotlarni bering: auditoriya kim, maqsad nima, cheklovlar qanday."
+      },
+      {
+       "t": 56,
+       "text": "Natija formati — javob qanday ko‘rinishda bo‘lishini ayting: jadval, ro‘yxat yoki 100 so‘zli matn."
+      },
+      {
+       "t": 68,
+       "text": "Misol keltirish ham juda foydali. Bitta namuna AIga nima kutayotganingizni tez tushuntiradi."
+      },
+      {
+       "t": 79,
+       "text": "Agar javob yoqmasa, promptni aniqlashtirib qayta yuboring. Bunga iteratsiya deyiladi."
+      },
+      {
+       "t": 90,
+       "text": "Eslab qoling: aniq prompt — aniq natija. Endi test orqali bilimingizni tekshiring."
+      }
+     ],
+     "video": "media/ai-2.mp4",
+     "poster": "media/ai-2.jpg",
+     "sizeKB": 186
+    }
+   ]
+  },
+  {
+   "id": "it-ingliz",
+   "title": "IT uchun ingliz tili",
+   "author": "Jasur Abdullayev",
+   "level": "A2–B1",
+   "color": "#FFD700",
+   "icon": "chat",
+   "about": "Ish suhbati va IT jamoasida kerak bo‘ladigan inglizcha iboralar, o‘zbek tilida tushuntirish bilan.",
+   "lessons": [
+    {
+     "id": "en-1",
+     "title": "Ish suhbatida o‘zingizni tanishtiring",
+     "duration": 100,
+     "terms": [
+      "Tell me about yourself",
+      "o‘tgan zamon",
+      "tajriba",
+      "kuchli tomon",
+      "junior",
+      "ishonch",
+      "mashq"
+     ],
+     "segments": [
+      {
+       "t": 0,
+       "text": "Bu darsda ingliz tilidagi ish suhbatida o‘zingizni qanday tanishtirishni o‘rganamiz."
+      },
+      {
+       "t": 10,
+       "text": "Suhbat odatda «Tell me about yourself» savoli bilan boshlanadi, ya’ni o‘zingiz haqingizda gapirib bering."
+      },
+      {
+       "t": 21,
+       "text": "Javobni uch qismga bo‘ling: hozir kim ekansiz, avval nima qilgansiz va kelajakda nima qilmoqchisiz."
+      },
+      {
+       "t": 33,
+       "text": "Masalan: «I am a junior web developer. I build websites with JavaScript.»"
+      },
+      {
+       "t": 44,
+       "text": "Tajriba haqida o‘tgan zamonda gapiring: «I worked on three projects last year.»"
+      },
+      {
+       "t": 55,
+       "text": "Kuchli tomonlaringizni misol bilan ayting: «I am a fast learner. I learned React in two months.»"
+      },
+      {
+       "t": 67,
+       "text": "Javobni bir daqiqadan oshirmang. Qisqa va aniq javob ishonch uyg‘otadi."
+      },
+      {
+       "t": 78,
+       "text": "Oxirida kompaniyaga savol bering: «What does a typical day look like in this team?»"
+      },
+      {
+       "t": 89,
+       "text": "Mashq qiling: javobingizni ovoz chiqarib uch marta ayting va telefoningizga yozib oling."
+      }
+     ],
+     "video": "media/en-1.mp4",
+     "poster": "media/en-1.jpg",
+     "sizeKB": 193
+    },
+    {
+     "id": "en-2",
+     "title": "IT jamoasidagi muhim so‘zlar",
+     "duration": 94,
+     "terms": [
+      "deadline",
+      "bug",
+      "deploy",
+      "feedback",
+      "stand-up",
+      "task",
+      "release",
+      "version"
+     ],
+     "segments": [
+      {
+       "t": 0,
+       "text": "Bugun IT jamoasida har kuni eshitiladigan muhim inglizcha so‘zlarni o‘rganamiz."
+      },
+      {
+       "t": 10,
+       "text": "Deadline — bu topshiriqni tugatish kerak bo‘lgan oxirgi muddat."
+      },
+      {
+       "t": 20,
+       "text": "Bug — dasturdagi xato. Bug fix esa shu xatoni tuzatish degani."
+      },
+      {
+       "t": 30,
+       "text": "Deploy — tayyor dasturni serverga joylab, foydalanuvchilarga ochish."
+      },
+      {
+       "t": 40,
+       "text": "Feedback — ishingiz haqida berilgan fikr. Feedbackni minnatdorchilik bilan qabul qiling."
+      },
+      {
+       "t": 51,
+       "text": "Meeting — uchrashuv yoki yig‘ilish. Daily stand-up esa har kungi qisqa jamoa uchrashuvi."
+      },
+      {
+       "t": 62,
+       "text": "Task — vazifa. Jamoada vazifalar odatda Jira yoki Trello kabi tizimlarda yuritiladi."
+      },
+      {
+       "t": 73,
+       "text": "Release — dasturning yangi versiyasini chiqarish. Version esa dasturning raqamlangan holati."
+      },
+      {
+       "t": 84,
+       "text": "Bu so‘zlarni har kuni ishlating, ular bir haftada yodingizda qoladi."
+      }
+     ],
+     "video": "media/en-2.mp4",
+     "poster": "media/en-2.jpg",
+     "sizeKB": 176
+    }
+   ]
+  },
+  {
+   "id": "excel",
+   "title": "Excel va ma’lumotlar tahlili",
+   "author": "Madina Yusupova",
+   "level": "Boshlang‘ich",
+   "color": "#00FF94",
+   "icon": "grid",
+   "about": "Formulalar, grafiklar va pivot jadval: ish va o‘qishda kerak bo‘ladigan Excel ko‘nikmalari.",
+   "lessons": [
+    {
+     "id": "ex-1",
+     "title": "Formulalar bilan tanishuv",
+     "duration": 97,
+     "terms": [
+      "formula",
+      "tenglik belgisi",
+      "SUM",
+      "AVERAGE",
+      "COUNT",
+      "IF",
+      "katak",
+      "absolyut murojaat"
+     ],
+     "segments": [
+      {
+       "t": 0,
+       "text": "Excelda har bir formula tenglik belgisi bilan boshlanadi."
+      },
+      {
+       "t": 9,
+       "text": "SUM formulasi sonlarni qo‘shadi. Masalan, =SUM(B2:B10) B2 dan B10 gacha bo‘lgan kataklarni qo‘shadi."
+      },
+      {
+       "t": 21,
+       "text": "AVERAGE formulasi o‘rtacha qiymatni hisoblaydi. Bu imtihon ballari tahlili uchun juda qulay."
+      },
+      {
+       "t": 32,
+       "text": "COUNT formulasi nechta katakda son borligini sanaydi."
+      },
+      {
+       "t": 42,
+       "text": "IF formulasi shart tekshiradi: agar ball 60 dan katta bo‘lsa «O‘tdi», aks holda «Yiqildi» deb yozadi."
+      },
+      {
+       "t": 54,
+       "text": "Katak manzili ustun harfi va qator raqamidan iborat, masalan B2."
+      },
+      {
+       "t": 64,
+       "text": "Dollar belgisi manzilni qotiradi: $B$2 formula ko‘chirilganda o‘zgarmaydi. Bunga absolyut murojaat deyiladi."
+      },
+      {
+       "t": 77,
+       "text": "Formulani pastga cho‘zish uchun katakning pastki o‘ng burchagidagi kichik kvadratni torting."
+      },
+      {
+       "t": 88,
+       "text": "Keyingi darsda bu formulalar asosida chiroyli grafik quramiz."
+      }
+     ],
+     "video": "media/ex-1.mp4",
+     "poster": "media/ex-1.jpg",
+     "sizeKB": 188
+    },
+    {
+     "id": "ex-2",
+     "title": "Grafik va jadvallar",
+     "duration": 98,
+     "terms": [
+      "ustunli grafik",
+      "chiziqli grafik",
+      "doiraviy grafik",
+      "sarlavha",
+      "pivot jadval",
+      "filtr",
+      "Insert"
+     ],
+     "segments": [
+      {
+       "t": 0,
+       "text": "Raqamlar ko‘p bo‘lsa, grafik ularni bir qarashda tushunarli qiladi."
+      },
+      {
+       "t": 10,
+       "text": "Grafik qurish uchun ma’lumotlarni belgilang va Insert menyusidan Chart tugmasini bosing."
+      },
+      {
+       "t": 21,
+       "text": "Ustunli grafik turli toifalarni solishtirish uchun eng yaxshi tanlov, masalan oylar bo‘yicha savdo."
+      },
+      {
+       "t": 33,
+       "text": "Chiziqli grafik vaqt davomida o‘zgarishni ko‘rsatadi, masalan bir yil davomidagi daromad."
+      },
+      {
+       "t": 44,
+       "text": "Doiraviy grafik qismlarning umumiy ulushini ko‘rsatadi, lekin toifalar beshtadan ko‘p bo‘lmasin."
+      },
+      {
+       "t": 56,
+       "text": "Har bir grafikka aniq sarlavha va o‘q nomlarini yozing."
+      },
+      {
+       "t": 66,
+       "text": "Pivot jadval katta ma’lumotlarni bir necha bosishda guruhlab, jamlab beradi."
+      },
+      {
+       "t": 78,
+       "text": "Filtr yordamida faqat kerakli qatorlarni ko‘rsatish mumkin."
+      },
+      {
+       "t": 89,
+       "text": "Tabriklaymiz! Endi siz ma’lumotlarni tahlil qilib, natijani grafikda ko‘rsata olasiz."
+      }
+     ],
+     "video": "media/ex-2.mp4",
+     "poster": "media/ex-2.jpg",
+     "sizeKB": 177
+    }
+   ]
+  }
+ ],
+ "company": {
+  "name": "Demo Kompaniya MChJ",
+  "licenses": 200,
+  "assigned": 150,
+  "completion": 78,
+  "departments": 12,
+  "employees": [
+   {
+    "name": "Alisher Rustamov",
+    "dept": "Muhandislik",
+    "progress": 95
+   },
+   {
+    "name": "Malika Asatova",
+    "dept": "Marketing",
+    "progress": 40
+   },
+   {
+    "name": "Timur Ro‘ziyev",
+    "dept": "Operatsiyalar",
+    "progress": 100
+   },
+   {
+    "name": "Nodira Ergasheva",
+    "dept": "Moliya",
+    "progress": 72
+   },
+   {
+    "name": "Sardor Qodirov",
+    "dept": "Savdo",
+    "progress": 58
+   },
+   {
+    "name": "Zarina Tursunova",
+    "dept": "HR",
+    "progress": 86
+   }
+  ]
+ },
+ "authorSample": {
+  "revenueUzs": 12500000,
+  "share": 70,
+  "enrollments": 450,
+  "quality": 4.8
+ }
+}

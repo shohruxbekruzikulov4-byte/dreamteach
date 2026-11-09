@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DreamTeach</title>
+<meta name="description" content="DreamTeach: AI ustoz, avtomatik test va internetsiz ishlaydigan darslar.">
+<meta name="theme-color" content="#0a1628">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="app.css">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <a class="brand" href="#kurslar" aria-label="DreamTeach bosh sahifa"><span class="logo">D</span><span class="wm">DreamTeach</span></a>
+    <nav class="nav" id="nav" aria-label="Asosiy bo‘limlar">
+      <a href="#kurslar" data-r="kurslar">Kurslar</a>
+      <a href="#natijalar" data-r="natijalar">Natijalarim</a>
+      <a href="#muallif" data-r="muallif">Muallif</a>
+      <a href="#kompaniya" data-r="kompaniya">Kompaniya</a>
+    </nav>
+    <div class="top-right">
+      <button class="btn sm ghost" id="installBtn" type="button" hidden>Ilovani o‘rnatish</button>
+      <button class="btn sm simbtn" id="simBtn" type="button" aria-pressed="false" title="Internet yo‘q holatni sinab ko‘rish">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M2 8.8a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0"/><circle cx="12" cy="19.5" r="1"/></svg>
+        <span class="lbl" id="simLbl">Oflayn rejimni sinash</span>
+      </button>
+      <button class="status" id="statusBtn" type="button" title="Internet va sinxronlash holati">
+        <span class="dot"></span><span id="statusText">Onlayn</span><span class="sq" id="statusQ"></span>
+      </button>
+    </div>
+  </div>
+</header>
+<main id="app"><p class="muted">DreamTeach yuklanmoqda…</p></main>
+<nav class="tabbar" id="tabbar" aria-label="Asosiy bo‘limlar">
+  <a href="#kurslar" data-r="kurslar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/></svg>Kurslar</a>
+  <a href="#natijalar" data-r="natijalar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Natijalar</a>
+  <a href="#muallif" data-r="muallif"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg>Muallif</a>
+  <a href="#kompaniya" data-r="kompaniya"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M16 9h2a2 2 0 0 1 2 2v10M2 21h20M8 7h4M8 11h4M8 15h4"/></svg>Kompaniya</a>
+</nav>
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+<script src="js/engine.js"></script>
+<script src="js/store.js"></script>
+<script src="js/cloud.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

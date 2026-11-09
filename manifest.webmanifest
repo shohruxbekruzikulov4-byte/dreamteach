@@ -1,0 +1,30 @@
+{
+ "name": "DreamTeach — internetsiz ham o‘qing",
+ "short_name": "DreamTeach",
+ "lang": "uz",
+ "description": "AI ustoz, avtomatik testlar va oflayn rejimga ega o‘quv platformasi.",
+ "start_url": "./#kurslar",
+ "scope": "./",
+ "display": "standalone",
+ "orientation": "any",
+ "background_color": "#050b16",
+ "theme_color": "#0a1628",
+ "icons": [
+  {
+   "src": "icons/icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "icons/icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  },
+  {
+   "src": "icons/maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}

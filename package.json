@@ -1,0 +1,12 @@
+{
+  "name": "dreamteach",
+  "version": "1.0.0",
+  "private": true,
+  "description": "DreamTeach — AI ustoz va internetsiz ishlaydigan o‘quv platformasi",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
