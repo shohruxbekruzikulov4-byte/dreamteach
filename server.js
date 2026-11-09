@@ -16,7 +16,7 @@ const KEY = process.env.GEMINI_API_KEY || '';
 const MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 const MOCK = process.env.AI_MOCK === '1';
 const MAX_UPLOAD = 300 * 1024 * 1024;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Analog11@';
 const ADMIN_TOKEN = 'adt-' + Buffer.from(ADMIN_PASSWORD + ':dreamteach').toString('base64');
 
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
@@ -447,7 +447,7 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, () => {
   console.log(`DreamTeach: http://localhost:${PORT}`);
-  console.log(`Admin panel: http://localhost:${PORT}/admin.html  (parol: ${ADMIN_PASSWORD})`);
+  console.log(`Admin panel: http://localhost:${PORT}/admin`);
   console.log(`O'qituvchi paneli: http://localhost:${PORT}/teacher.html`);
   console.log(KEY && !MOCK ? `AI: ${MODEL} (Gemini)` : "AI: kalitsiz rejim — javoblar dars matnidan. Gemini uchun GEMINI_API_KEY bering.");
 });
