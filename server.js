@@ -216,28 +216,63 @@ function activateSubscription(payment) {
   if (!plan) return;
   const expiresAt = Date.now() + plan.period * 24 * 3600 * 1000;
   if (payment.userType === 'teacher') {
-    const teacher = db.teachers.find(t => t.id === payment.userId);
-    if (teacher) { teacher.subscriptionPlan = payment.planId; teacher.subscriptionExpires = expiresAt; teacher.updatedAt = Date.now(); }
+    let teacher = db.teachers.find(t => t.id === payment.userId);
+    if (!teacher) {
+      teacher = { id: payment.userId, name: 'Teacher', status: 'approved', createdAt: Date.now() };
+      db.teachers.push(teacher);
+    }
+    teacher.subscriptionPlan = payment.planId;
+    teacher.subscriptionExpires = expiresAt;
+    teacher.updatedAt = Date.now();
   } else {
-    const student = db.students.find(s => s.id === payment.userId);
-    if (student) { student.subscriptionPlan = payment.planId; student.subscriptionExpires = expiresAt; }
+    let student = db.students.find(s => s.id === payment.userId);
+    if (!student) {
+      student = { id: payment.userId, createdAt: Date.now() };
+      db.students.push(student);
+    }
+    student.subscriptionPlan = payment.planId;
+    student.subscriptionExpires = expiresAt;
   }
+  saveDb();
 }
 
 function getSubscription(userId, userType) {
   let user = null;
   if (userType === 'teacher') user = db.teachers.find(t => t.id === userId);
   else user = db.students.find(s => s.id === userId);
-  if (!user) return { active: false, plan: null, expiresAt: null };
-  const active = user.subscriptionExpires && user.subscriptionExpires > Date.now();
-  const plan = PLANS[user.subscriptionPlan];
-  return {
-    active: !!active,
-    plan: user.subscriptionPlan || null,
-    planLabel: plan ? plan.label : null,
-    expiresAt: user.subscriptionExpires || null,
-    daysLeft: active ? Math.ceil((user.subscriptionExpires - Date.now()) / 86400000) : 0
-  };
+
+  if (user && user.subscriptionExpires && user.subscriptionExpires > Date.now()) {
+    const plan = PLANS[user.subscriptionPlan];
+    return {
+      active: true,
+      plan: user.subscriptionPlan || null,
+      planLabel: plan ? plan.label : null,
+      expiresAt: user.subscriptionExpires || null,
+      daysLeft: Math.ceil((user.subscriptionExpires - Date.now()) / 86400000)
+    };
+  }
+
+  // Fallback: check db.payments for any active paid plan for this userId
+  const paid = (db.payments || [])
+    .filter(p => p.userId === userId && (p.userType || 'student') === userType && p.status === 'paid' && p.paidAt)
+    .sort((a, b) => b.paidAt - a.paidAt)[0];
+  if (paid) {
+    const plan = PLANS[paid.planId];
+    if (plan) {
+      const expiresAt = paid.paidAt + plan.period * 24 * 3600 * 1000;
+      if (expiresAt > Date.now()) {
+        return {
+          active: true,
+          plan: paid.planId,
+          planLabel: plan.label,
+          expiresAt,
+          daysLeft: Math.ceil((expiresAt - Date.now()) / 86400000)
+        };
+      }
+    }
+  }
+
+  return { active: false, plan: null, expiresAt: null, daysLeft: 0 };
 }
 
 function serveFile(req, res, file) {
@@ -615,6 +650,19 @@ const server = http.createServer(async (req, res) => {
       const sub = getSubscription(userId, userType);
       return send(res, 200, sub);
     }
+    // ---------------- DEMO PAYMENT CONFIRM ----------------
+    // GET/POST /api/payment/demo/confirm?order=... – simulate successful payment in demo mode
+    if (p === '/api/payment/demo/confirm') {
+      const orderId = safeId(url.searchParams.get('order') || '');
+      const payment = orderId ? db.payments.find(p => p.id === orderId) : null;
+      if (!payment) return send(res, 404, { error: 'Buyurtma topilmadi' });
+      payment.status = 'paid';
+      payment.paidAt = Date.now();
+      activateSubscription(payment);
+      saveDb();
+      return send(res, 200, { ok: true, status: 'paid', orderId, plan: PLANS[payment.planId]?.label });
+    }
+
     // ---------------- DEBUG ENDPOINT ----------------
     // POST /api/debug/activate-subscription – manually activate a subscription for a test user
     // Body: { userId: string, userType: "teacher"|"student", planId: string }

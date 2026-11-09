@@ -269,13 +269,40 @@ h1 { font-size: 28px; font-weight: 800; text-align: center; margin-bottom: 8px; 
     var method = params.get('method') || 'payme';
     app.innerHTML = '<div class="success-wrap anim">' +
       '<div class="success-icon">🧪</div>' +
-      '<div class="success-title" style="color:var(--accent2)">Demo rejim</div>' +
-      '<p class="success-sub">'+( method==='payme' ? 'Payme' : 'Click' )+' sozlanmagan (merchant ID kiritilmagan).<br>' +
-        'Haqiqiy to\'lov uchun Railway\'da <b>PAYME_MERCHANT_ID</b> yoki <b>CLICK_SERVICE_ID</b> sozlang.</p>' +
-      '<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:16px">' +
-        '<a href="/" class="back-btn">🏠 Bosh sahifaga qaytish</a>' +
+      '<div class="success-title" style="color:var(--accent2)">Demo to\'lov rejimi</div>' +
+      '<p class="success-sub">'+( method==='payme' ? 'Payme' : 'Click' )+' orqali to\'lov simulyatsiyasi.<br>' +
+        'Quyidagi tugmani bosish orqali to\'lovni muvaffaqiyatli deb hisoblab, obunangizni darhol faollashtirishingiz mumkin.</p>' +
+      '<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:24px">' +
+        '<button id="confirmDemoBtn" class="back-btn" style="border:none;cursor:pointer;background:linear-gradient(135deg,#00ff94,#00b0ff);color:#07101f;font-weight:800;font-size:15px">' +
+          '✅ To\'lovni tasdiqlash (Obunani yoqish)' +
+        '</button>' +
+        '<a href="/" class="back-btn" style="background:rgba(255,255,255,0.08)">🏠 Bosh sahifa</a>' +
       '</div>' +
     '</div>';
+
+    var btn = document.getElementById('confirmDemoBtn');
+    if (btn) {
+      btn.onclick = function() {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spin"></span> Faollashtirilmoqda…';
+        fetch(API + '/api/payment/demo/confirm?order=' + encodeURIComponent(order))
+          .then(function(r){ return r.json(); })
+          .then(function(j){
+            if (j.ok) {
+              location.href = '/payment/success?order=' + encodeURIComponent(order);
+            } else {
+              alert(j.error || 'Xato yuz berdi');
+              btn.disabled = false;
+              btn.innerHTML = '✅ To\'lovni tasdiqlash (Obunani yoqish)';
+            }
+          })
+          .catch(function(){
+            alert('Server bilan bog\'lanishda xato');
+            btn.disabled = false;
+            btn.innerHTML = '✅ To\'lovni tasdiqlash (Obunani yoqish)';
+          });
+      };
+    }
   }
 })();
 </script>

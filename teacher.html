@@ -167,46 +167,123 @@ body::before {
 }
 .tag.bad { background: rgba(255,79,106,.1); color: var(--red); border-color: rgba(255,79,106,.2); }
 
-/* Quiz / Exam */
-.exam-wrap { display: flex; flex-direction: column; gap: 20px; }
-.q-card {
-  background: rgba(255,255,255,0.04); border: 1px solid var(--border);
-  border-radius: 14px; padding: 20px;
-  transition: border-color .2s;
-}
-.q-num { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
-.q-text { font-size: 15px; font-weight: 600; margin-bottom: 16px; line-height: 1.5; }
-.q-opts { display: flex; flex-direction: column; gap: 8px; }
-.q-opt {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px 16px; border-radius: 10px;
-  border: 1px solid var(--border); cursor: pointer;
-  background: transparent; color: var(--text); font-size: 14px;
-  font-family: inherit; text-align: left; transition: all .15s;
-}
-.q-opt:hover { border-color: var(--accent); background: rgba(108,99,255,.08); }
-.q-opt.sel { border-color: var(--accent); background: rgba(108,99,255,.15); }
-.q-opt.right { border-color: var(--green); background: rgba(0,255,148,.1); color: var(--green); }
-.q-opt.wrong { border-color: var(--red); background: rgba(255,79,106,.1); color: var(--red); }
-.q-opt.disabled { cursor: not-allowed; }
-.opt-key {
-  width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 700;
-  background: rgba(255,255,255,0.08); border: 1px solid var(--border);
+/* ===== EXAM — full redesign ===== */
+.exam-outer {
+  width: 100%; max-width: 640px;
+  display: flex; flex-direction: column; gap: 0;
 }
 
-/* Timer bar */
-.timer-bar {
-  height: 4px; border-radius: 999px; background: var(--border);
-  margin-bottom: 24px; overflow: hidden;
+/* Top bar */
+.exam-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px; gap: 12px; flex-wrap: wrap;
 }
-.timer-fill {
+.exam-progress-label {
+  font-size: 13px; font-weight: 600; color: var(--muted);
+}
+.exam-timer {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 14px; border-radius: 999px;
+  background: rgba(255,255,255,.05); border: 1px solid var(--border);
+  font-size: 13px; font-weight: 700; min-width: 80px; justify-content: center;
+  transition: color .3s, border-color .3s;
+}
+.exam-timer.urgent { color: var(--red); border-color: rgba(255,79,106,.4); background: rgba(255,79,106,.07); }
+
+/* Progress dots */
+.exam-dots {
+  display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap;
+}
+.exam-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: rgba(255,255,255,.12); border: 1.5px solid rgba(255,255,255,.12);
+  transition: all .25s;
+}
+.exam-dot.answered { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 6px rgba(108,99,255,.5); }
+.exam-dot.current  { background: var(--accent2); border-color: var(--accent2); transform: scale(1.3); }
+
+/* Progress bar */
+.exam-pbar {
+  height: 5px; border-radius: 999px; background: rgba(255,255,255,.07);
+  margin-bottom: 28px; overflow: hidden; position: relative;
+}
+.exam-pbar-fill {
   height: 100%; border-radius: 999px;
   background: linear-gradient(90deg, var(--accent), var(--accent2));
-  transition: width .9s linear, background .3s;
+  transition: width .4s cubic-bezier(.4,0,.2,1);
 }
-.timer-fill.urgent { background: linear-gradient(90deg, var(--red), var(--yellow)); }
+.exam-pbar-time {
+  position: absolute; top: 0; right: 0; height: 100%;
+  background: linear-gradient(90deg, var(--red), var(--yellow));
+  border-radius: 999px; transition: width .9s linear, opacity .3s;
+}
+
+/* Question card */
+.q-card {
+  background: linear-gradient(135deg, rgba(108,99,255,.07) 0%, rgba(0,229,255,.04) 100%);
+  border: 1px solid rgba(108,99,255,.2);
+  border-radius: 20px; padding: 28px 24px 24px;
+  margin-bottom: 16px;
+  animation: fadeUp .3s ease both;
+  box-shadow: 0 4px 24px rgba(0,0,0,.2);
+}
+.q-num {
+  font-size: 11px; font-weight: 800; color: var(--accent2);
+  text-transform: uppercase; letter-spacing: .1em; margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.q-num::before {
+  content: ''; display: inline-block; width: 20px; height: 2px;
+  background: var(--accent2); border-radius: 999px;
+}
+.q-text {
+  font-size: 17px; font-weight: 700; margin-bottom: 20px;
+  line-height: 1.55; color: var(--text);
+}
+.q-opts { display: flex; flex-direction: column; gap: 10px; }
+.q-opt {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 18px; border-radius: 14px;
+  border: 1.5px solid rgba(255,255,255,.08); cursor: pointer;
+  background: rgba(255,255,255,.03); color: var(--text); font-size: 15px;
+  font-family: inherit; text-align: left;
+  transition: all .18s cubic-bezier(.4,0,.2,1);
+  position: relative; overflow: hidden;
+}
+.q-opt::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(108,99,255,.12), rgba(0,229,255,.06));
+  opacity: 0; transition: opacity .2s;
+}
+.q-opt:hover { border-color: rgba(108,99,255,.5); transform: translateX(4px); }
+.q-opt:hover::before { opacity: 1; }
+.q-opt.sel {
+  border-color: var(--accent); background: rgba(108,99,255,.12);
+  transform: translateX(6px);
+  box-shadow: 0 0 0 1px var(--accent), 0 4px 16px rgba(108,99,255,.2);
+}
+.q-opt.sel::before { opacity: 1; }
+.q-opt.sel .opt-key { background: var(--accent); border-color: var(--accent); color: #fff; }
+.q-opt.right { border-color: var(--green); background: rgba(0,255,148,.08); color: var(--green); transform: none; }
+.q-opt.right .opt-key { background: var(--green); border-color: var(--green); color: #000; }
+.q-opt.wrong { border-color: var(--red); background: rgba(255,79,106,.08); color: var(--red); transform: none; }
+.q-opt.wrong .opt-key { background: var(--red); border-color: var(--red); color: #fff; }
+.q-opt.disabled { cursor: not-allowed; opacity: .6; transform: none !important; }
+.opt-key {
+  width: 32px; height: 32px; border-radius: 10px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 800; letter-spacing: 0;
+  background: rgba(255,255,255,.07); border: 1.5px solid rgba(255,255,255,.12);
+  transition: all .18s; position: relative; z-index: 1;
+}
+.opt-label { position: relative; z-index: 1; }
+
+/* Exam wrap */
+.exam-wrap { display: flex; flex-direction: column; }
+
+/* Timer bar (legacy, hidden) */
+.timer-bar { display: none; }
+.timer-fill { display: none; }
 
 /* Status screen */
 .status-icon {
@@ -562,60 +639,93 @@ body::before {
     examTimers = [];
     S.step = 'exam';
     var qs = S.examQuestions;
-    app.innerHTML = '<div class="panel anim">' +
-      stepsHtml('exam') +
-      '<div class="panel-title">Imtihon ✏️</div>' +
-      '<p class="panel-sub" id="examStatus">0 / '+qs.length+' ta savol javoblandi</p>' +
-      '<div class="timer-bar"><div class="timer-fill" id="timerFill" style="width:100%"></div></div>' +
-      '<div class="exam-wrap" id="examWrap">' +
-        qs.map(function(q, qi) {
-          return '<div class="q-card" id="qcard'+qi+'">' +
-            '<div class="q-num">'+( qi+1)+'-savol</div>' +
-            '<div class="q-text">'+esc(q.q)+'</div>' +
-            '<div class="q-opts" id="qopts'+qi+'">' +
-              q.options.map(function(opt, oi) {
-                return '<button class="q-opt" data-qi="'+qi+'" data-oi="'+oi+'">' +
-                  '<span class="opt-key">'+'ABCD'[oi]+'</span>' +
-                  '<span>'+esc(opt)+'</span>' +
-                '</button>';
-              }).join('') +
-            '</div>' +
-          '</div>';
-        }).join('') +
-      '</div>' +
-      '<div class="err-msg" id="examSubmitErr" style="margin-top:12px"></div>' +
-      '<button class="btn-primary" id="submitExamBtn" disabled style="margin-top:16px"><span>Imtihonni topshirish →</span></button>' +
+    var TOTAL_SECS = 30 * qs.length;
+
+    app.innerHTML =
+      '<div class="exam-outer anim">' +
+        stepsHtml('exam') +
+        '<div class="exam-topbar">' +
+          '<div>' +
+            '<div style="font-size:18px;font-weight:800;margin-bottom:2px">✏️ Imtihon</div>' +
+            '<div class="exam-progress-label" id="examStatus">0 / ' + qs.length + ' ta savol javoblandi</div>' +
+          '</div>' +
+          '<div class="exam-timer" id="examTimer">⏱ ' + Math.floor(TOTAL_SECS / 60) + ':' + String(TOTAL_SECS % 60).padStart(2,'0') + '</div>' +
+        '</div>' +
+
+        '<div class="exam-dots" id="examDots">' +
+          qs.map(function(_, i){ return '<div class="exam-dot' + (i===0?' current':'') + '" id="dot'+i+'"></div>'; }).join('') +
+        '</div>' +
+
+        '<div class="exam-pbar">' +
+          '<div class="exam-pbar-fill" id="examPbarFill" style="width:0%"></div>' +
+          '<div class="exam-pbar-time" id="examPbarTime" style="width:100%"></div>' +
+        '</div>' +
+
+        '<div class="exam-wrap" id="examWrap">' +
+          qs.map(function(q, qi) {
+            return '<div class="q-card" id="qcard'+qi+'" style="animation-delay:'+(qi*0.07)+'s">' +
+              '<div class="q-num">' + (qi+1) + '-savol</div>' +
+              '<div class="q-text">' + esc(q.q) + '</div>' +
+              '<div class="q-opts" id="qopts'+qi+'">' +
+                q.options.map(function(opt, oi) {
+                  return '<button class="q-opt" data-qi="'+qi+'" data-oi="'+oi+'">' +
+                    '<span class="opt-key">' + 'ABCD'[oi] + '</span>' +
+                    '<span class="opt-label">' + esc(opt) + '</span>' +
+                  '</button>';
+                }).join('') +
+              '</div>' +
+            '</div>';
+          }).join('') +
+        '</div>' +
+
+        '<div class="err-msg" id="examSubmitErr" style="margin-top:4px"></div>' +
+        '<button class="btn-primary" id="submitExamBtn" disabled style="margin-top:20px">' +
+          '<span>Imtihonni topshirish →</span>' +
+        '</button>' +
       '</div>';
 
-    // Start per-question timers
-    var SECS = 30;
-    var totalSecs = SECS * qs.length;
+    /* Timer */
     var elapsed = 0;
-    var fill = document.getElementById('timerFill');
+    var timerEl  = document.getElementById('examTimer');
+    var pbarTime = document.getElementById('examPbarTime');
 
     var globalTimer = setInterval(function() {
       elapsed++;
-      var pct = Math.max(0, 100 - (elapsed / totalSecs * 100));
-      fill.style.width = pct + '%';
-      if (pct < 20) fill.classList.add('urgent');
-      if (elapsed >= totalSecs) {
-        clearInterval(globalTimer);
-        submitExam();
-      }
+      var left = Math.max(0, TOTAL_SECS - elapsed);
+      var mm = Math.floor(left / 60), ss = left % 60;
+      timerEl.textContent = '⏱ ' + mm + ':' + String(ss).padStart(2,'0');
+      var pct = (elapsed / TOTAL_SECS) * 100;
+      pbarTime.style.width = Math.max(0, 100 - pct) + '%';
+      if (left <= Math.floor(TOTAL_SECS * 0.2)) timerEl.classList.add('urgent');
+      if (left === 0) { clearInterval(globalTimer); submitExam(); }
     }, 1000);
     examTimers.push(globalTimer);
 
-    // Click handlers
+    /* Clicks */
     document.getElementById('examWrap').addEventListener('click', function(e) {
       var btn = e.target.closest('[data-qi]');
       if (!btn) return;
       var qi = +btn.dataset.qi, oi = +btn.dataset.oi;
       S.examAnswers[qi] = oi;
+
+      /* update options */
       var opts = document.getElementById('qopts'+qi).querySelectorAll('.q-opt');
       opts.forEach(function(o, i) { o.classList.toggle('sel', i===oi); });
+
+      /* update dots */
+      var dot = document.getElementById('dot'+qi);
+      if (dot) { dot.classList.add('answered'); dot.classList.remove('current'); }
+
+      /* progress bar fill */
       var answered = S.examAnswers.filter(function(x){ return x !== undefined; }).length;
+      var pbarFill = document.getElementById('examPbarFill');
+      if (pbarFill) pbarFill.style.width = (answered / qs.length * 100) + '%';
+
+      /* status text */
       var status = document.getElementById('examStatus');
       if (status) status.textContent = answered + ' / ' + qs.length + ' ta savol javoblandi';
+
+      /* submit button */
       var sb = document.getElementById('submitExamBtn');
       if (sb) sb.disabled = (answered < qs.length);
     });
@@ -829,6 +939,12 @@ body::before {
   }
 
   function publishLesson() {
+    if (!S.subscription || !S.subscription.active) {
+      if (confirm("Kurs va darslarni joylashtirish uchun o'qituvchi obunasi faol bo'lishi kerak.\n\nObuna sotib olish sahifasiga o'tasizmi?")) {
+        location.href = '/payment?userId=' + encodeURIComponent(S.teacherId) + '&userType=teacher';
+      }
+      return;
+    }
     var title = (document.getElementById('dbTitle')||{}).value || '';
     var courseTitle = (document.getElementById('dbCourse')||{}).value || '';
     var price = +(document.getElementById('dbPrice')||{}).value || 0;
