@@ -1,0 +1,740 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DreamTeach — Admin Panel</title>
+<meta name="description" content="DreamTeach admin paneli — o'qituvchilarni boshqaring.">
+<meta name="theme-color" content="#0a1628">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #07101f;
+  --bg2: #0d1a2f;
+  --bg3: #152040;
+  --card: rgba(255,255,255,0.05);
+  --border: rgba(255,255,255,0.09);
+  --accent: #6c63ff;
+  --accent2: #00e5ff;
+  --green: #00ff94;
+  --red: #ff4f6a;
+  --yellow: #ffd700;
+  --orange: #ff7a45;
+  --text: #e8eaf6;
+  --muted: #7a8498;
+  --radius: 14px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); }
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: -1;
+  background: radial-gradient(ellipse 70% 50% at 10% 5%, rgba(108,99,255,.14) 0%, transparent 60%),
+              radial-gradient(ellipse 50% 40% at 90% 90%, rgba(0,229,255,.08) 0%, transparent 60%),
+              var(--bg);
+}
+
+/* Layout */
+#app { min-height: 100vh; }
+
+/* Login */
+.login-wrap {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+}
+.login-card {
+  width: 100%; max-width: 400px; padding: 40px 36px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 24px; backdrop-filter: blur(20px);
+  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+}
+.logo-row { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
+.logo-mark {
+  width: 44px; height: 44px; border-radius: 12px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; font-weight: 800; color: #fff;
+  box-shadow: 0 4px 20px rgba(108,99,255,.4);
+}
+.logo-name { font-size: 20px; font-weight: 700; }
+.logo-name span { color: var(--accent2); }
+.logo-badge {
+  font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px;
+  background: rgba(108,99,255,.2); color: var(--accent); margin-left: 8px;
+  vertical-align: middle;
+}
+
+/* Dashboard */
+.dash { display: flex; height: 100vh; overflow: hidden; }
+
+/* Sidebar */
+.sidebar {
+  width: 240px; flex-shrink: 0;
+  background: var(--bg2); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  padding: 20px 0;
+}
+.sidebar-logo { padding: 0 20px 20px; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
+.sidebar-logo .logo-row { margin: 0; }
+
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 20px; border: none; background: transparent;
+  color: var(--muted); font-size: 14px; font-weight: 500;
+  cursor: pointer; transition: all .2s; width: 100%; text-align: left;
+  font-family: inherit; border-left: 3px solid transparent;
+}
+.nav-item:hover { background: rgba(255,255,255,.04); color: var(--text); }
+.nav-item.active { background: rgba(108,99,255,.1); color: var(--accent); border-left-color: var(--accent); }
+.nav-item .ic { width: 20px; text-align: center; font-size: 16px; }
+.nav-sep { height: 1px; background: var(--border); margin: 8px 0; }
+
+.sidebar-bottom { margin-top: auto; padding: 12px 20px; border-top: 1px solid var(--border); }
+.admin-badge {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px; border-radius: 10px; background: rgba(255,255,255,.04);
+}
+.admin-ava {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700;
+}
+.admin-name { font-size: 13px; font-weight: 600; }
+.admin-role { font-size: 11px; color: var(--muted); }
+.logout-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border);
+  background: transparent; color: var(--muted); font-size: 12px;
+  cursor: pointer; margin-top: 8px; font-family: inherit; transition: all .2s;
+}
+.logout-btn:hover { border-color: var(--red); color: var(--red); }
+
+/* Main */
+.main { flex: 1; overflow-y: auto; padding: 28px 32px; }
+@media (max-width: 768px) {
+  .dash { flex-direction: column; }
+  .sidebar { width: 100%; height: auto; flex-direction: row; flex-wrap: wrap; padding: 10px; border-right: none; border-bottom: 1px solid var(--border); }
+  .sidebar-logo, .sidebar-bottom, .nav-sep { display: none; }
+  .nav-item { padding: 8px 14px; border-left: none; border-radius: 8px; font-size: 13px; border-bottom: 3px solid transparent; }
+  .nav-item.active { border-bottom-color: var(--accent); border-left-color: transparent; }
+  .main { padding: 16px; }
+}
+
+.page-title {
+  font-size: 22px; font-weight: 800; margin-bottom: 4px;
+  display: flex; align-items: center; gap: 10px;
+}
+.page-sub { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+
+/* KPIs */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 14px; margin-bottom: 28px; }
+.kpi {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 18px;
+  position: relative; overflow: hidden;
+}
+.kpi::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  border-radius: 999px 999px 0 0;
+}
+.kpi.c-purple::before { background: var(--accent); }
+.kpi.c-cyan::before { background: var(--accent2); }
+.kpi.c-green::before { background: var(--green); }
+.kpi.c-yellow::before { background: var(--yellow); }
+.kpi.c-red::before { background: var(--red); }
+.kpi .v { font-size: 30px; font-weight: 800; display: block; margin-bottom: 2px; }
+.kpi.c-purple .v { color: var(--accent); }
+.kpi.c-cyan .v { color: var(--accent2); }
+.kpi.c-green .v { color: var(--green); }
+.kpi.c-yellow .v { color: var(--yellow); }
+.kpi.c-red .v { color: var(--red); }
+.kpi .l { font-size: 12px; color: var(--muted); font-weight: 500; }
+
+/* Filters */
+.filters {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; align-items: center;
+}
+.filter-btn {
+  padding: 7px 16px; border-radius: 999px; border: 1px solid var(--border);
+  background: transparent; color: var(--muted); font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all .2s; font-family: inherit; display: flex; align-items: center; gap: 6px;
+}
+.filter-btn:hover { border-color: var(--accent); color: var(--text); }
+.filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.search-wrap { flex: 1; min-width: 200px; position: relative; }
+.search-input {
+  width: 100%; padding: 9px 14px 9px 36px;
+  background: rgba(255,255,255,.05); border: 1px solid var(--border);
+  border-radius: 10px; color: var(--text); font-size: 14px; font-family: inherit; outline: none;
+}
+.search-input:focus { border-color: var(--accent); }
+.search-ico { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; }
+
+/* Table */
+.table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  padding: 12px 16px; text-align: left; font-size: 11px; font-weight: 700;
+  color: var(--muted); text-transform: uppercase; letter-spacing: .06em;
+  background: rgba(255,255,255,.03); border-bottom: 1px solid var(--border);
+}
+tbody tr { border-bottom: 1px solid var(--border); transition: background .15s; cursor: pointer; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: rgba(255,255,255,.03); }
+td { padding: 14px 16px; font-size: 14px; vertical-align: middle; }
+
+/* Status chips */
+.chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700;
+  letter-spacing: .02em; white-space: nowrap;
+}
+.chip.pending { background: rgba(255,215,0,.12); color: var(--yellow); }
+.chip.pending-exam { background: rgba(255,122,69,.12); color: var(--orange); }
+.chip.approved { background: rgba(0,255,148,.1); color: var(--green); }
+.chip.rejected { background: rgba(255,79,106,.1); color: var(--red); }
+.chip.info { background: rgba(108,99,255,.12); color: var(--accent2); }
+
+/* Score badge */
+.score-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: 50%; font-size: 13px; font-weight: 800;
+  flex-shrink: 0;
+}
+.score-badge.hi { background: rgba(0,255,148,.12); color: var(--green); }
+.score-badge.mid { background: rgba(255,215,0,.12); color: var(--yellow); }
+.score-badge.lo { background: rgba(255,79,106,.12); color: var(--red); }
+
+/* Buttons */
+.btn { padding: 8px 16px; border-radius: 9px; border: 1px solid; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all .15s; }
+.btn-approve { background: rgba(0,255,148,.1); border-color: rgba(0,255,148,.3); color: var(--green); }
+.btn-approve:hover { background: rgba(0,255,148,.2); }
+.btn-reject { background: rgba(255,79,106,.1); border-color: rgba(255,79,106,.3); color: var(--red); }
+.btn-reject:hover { background: rgba(255,79,106,.2); }
+.btn-reset { background: rgba(255,215,0,.08); border-color: rgba(255,215,0,.2); color: var(--yellow); }
+.btn-reset:hover { background: rgba(255,215,0,.15); }
+.btn-primary {
+  padding: 12px 24px; border-radius: 12px; border: none;
+  background: linear-gradient(135deg, var(--accent), #9b6cff);
+  color: #fff; font-size: 15px; font-weight: 700; cursor: pointer;
+  box-shadow: 0 4px 20px rgba(108,99,255,.4); transition: all .15s;
+  font-family: inherit;
+}
+.btn-primary:hover { transform: translateY(-1px); }
+.btn-primary:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+/* Modal */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.7);
+  backdrop-filter: blur(8px); display: flex; align-items: center;
+  justify-content: center; z-index: 999; padding: 20px;
+  animation: fadeIn .2s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.modal {
+  width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 20px; padding: 32px;
+  box-shadow: 0 30px 80px rgba(0,0,0,.6);
+  animation: slideUp .25s ease;
+}
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 24px;
+}
+.modal-close {
+  width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border);
+  background: transparent; color: var(--muted); font-size: 16px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.modal-close:hover { border-color: var(--red); color: var(--red); }
+
+/* Detail rows */
+.detail-row {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 10px 0; border-bottom: 1px solid var(--border); gap: 16px;
+}
+.detail-row:last-child { border-bottom: none; }
+.detail-key { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; flex-shrink: 0; }
+.detail-val { font-size: 14px; font-weight: 500; text-align: right; }
+
+/* Resume text box */
+.resume-box {
+  background: rgba(255,255,255,.03); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px; font-size: 13px; line-height: 1.6;
+  color: var(--muted); max-height: 200px; overflow-y: auto; white-space: pre-wrap;
+}
+
+/* AI analysis */
+.ai-block {
+  background: rgba(108,99,255,.06); border: 1px solid rgba(108,99,255,.2);
+  border-radius: 12px; padding: 16px; margin: 12px 0;
+}
+.ai-block-title { font-size: 12px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 10px; }
+.tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.tag { padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; }
+.tag.ok { background: rgba(0,255,148,.1); color: var(--green); border: 1px solid rgba(0,255,148,.2); }
+.tag.bad { background: rgba(255,79,106,.1); color: var(--red); border: 1px solid rgba(255,79,106,.2); }
+
+/* Note input */
+.note-input {
+  width: 100%; padding: 10px 14px; border-radius: 10px;
+  background: rgba(255,255,255,.05); border: 1px solid var(--border);
+  color: var(--text); font-size: 14px; font-family: inherit; outline: none;
+  margin: 8px 0;
+}
+.note-input:focus { border-color: var(--accent); }
+
+/* Action row */
+.action-row {
+  display: flex; gap: 10px; flex-wrap: wrap; padding-top: 16px;
+  border-top: 1px solid var(--border); margin-top: 16px;
+}
+
+/* Form helpers */
+.f-label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .04em; }
+.f-input {
+  width: 100%; padding: 10px 14px; border-radius: 10px;
+  background: rgba(255,255,255,.05); border: 1px solid var(--border);
+  color: var(--text); font-size: 14px; font-family: inherit; outline: none;
+}
+.f-input:focus { border-color: var(--accent); }
+
+/* Spinner */
+.spin {
+  display: inline-block; width: 16px; height: 16px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.3); border-top-color: #fff;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Empty */
+.empty { text-align: center; padding: 40px; color: var(--muted); }
+.empty .icon { font-size: 40px; margin-bottom: 12px; }
+
+/* Toast */
+.toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+.toast {
+  padding: 12px 20px; border-radius: 12px; font-size: 14px; font-weight: 500;
+  box-shadow: 0 8px 24px rgba(0,0,0,.4); animation: slideUp .2s ease;
+}
+.toast.ok { background: rgba(0,255,148,.15); border: 1px solid rgba(0,255,148,.3); color: var(--green); }
+.toast.err { background: rgba(255,79,106,.15); border: 1px solid rgba(255,79,106,.3); color: var(--red); }
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+.anim { animation: fadeUp .3s ease both; }
+
+/* Progress bar */
+.prog-bar { height: 4px; border-radius: 999px; background: var(--border); overflow: hidden; margin-top: 4px; }
+.prog-fill { height: 100%; border-radius: 999px; transition: width .3s; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast-container" id="toastC"></div>
+<div id="modal"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var API = location.origin;
+  var S = {
+    token: sessionStorage.getItem('dt_admin_token') || '',
+    teachers: [],
+    stats: { total:0, pending_exam:0, pending_admin:0, approved:0, rejected:0 },
+    filter: 'all',
+    search: '',
+    view: 'teachers',
+    loading: false
+  };
+
+  /* ---- helpers ---- */
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+  function ago(ts){ if(!ts)return '—'; var s=Math.round((Date.now()-ts)/1000); if(s<60)return 'hozirgina'; if(s<3600)return Math.round(s/60)+' daq'; if(s<86400)return Math.round(s/3600)+' soat'; return new Date(ts).toLocaleDateString('uz-UZ'); }
+
+  function toast(msg, kind) {
+    var el = document.createElement('div');
+    el.className = 'toast ' + (kind||'ok'); el.textContent = msg;
+    document.getElementById('toastC').appendChild(el);
+    setTimeout(function(){ el.remove(); }, 3500);
+  }
+
+  function authFetch(url, opts) {
+    opts = opts || {};
+    opts.headers = Object.assign({ 'Authorization': 'Bearer ' + S.token, 'Content-Type': 'application/json' }, opts.headers||{});
+    return fetch(API + url, opts).then(function(r){ return r.json(); });
+  }
+
+  /* ---- auth ---- */
+  function showLogin() {
+    document.getElementById('app').innerHTML =
+      '<div class="login-wrap"><div class="login-card anim">' +
+        '<div class="logo-row"><div class="logo-mark">D</div><div class="logo-name">Dream<span>Teach</span> <span class="logo-badge">ADMIN</span></div></div>' +
+        '<div style="font-size:20px;font-weight:700;margin-bottom:6px">Admin kirish</div>' +
+        '<p style="color:var(--muted);font-size:13px;margin-bottom:24px">DreamTeach boshqaruv paneli</p>' +
+        '<div style="margin-bottom:16px"><label class="f-label">Admin paroli</label><input class="f-input" id="passIn" type="password" placeholder="Parrolni kiriting" autocomplete="current-password"></div>' +
+        '<div style="color:var(--red);font-size:13px;min-height:20px;margin-bottom:12px" id="loginErr"></div>' +
+        '<button class="btn-primary" id="loginBtn" style="width:100%">Kirish →</button>' +
+        '<p style="text-align:center;color:var(--muted);font-size:12px;margin-top:16px">Default parol: <code style="color:var(--accent2)">admin123</code></p>' +
+      '</div></div>';
+
+    document.getElementById('loginBtn').onclick = function() { doLogin(); };
+    document.getElementById('passIn').addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
+  }
+
+  function doLogin() {
+    var pass = document.getElementById('passIn').value;
+    var errEl = document.getElementById('loginErr');
+    var btn = document.getElementById('loginBtn');
+    btn.disabled=true; btn.innerHTML='<span class="spin"></span> Tekshirilmoqda…';
+    fetch(API+'/api/admin/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({password:pass}) })
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        if (j.ok && j.token) {
+          S.token = j.token;
+          sessionStorage.setItem('dt_admin_token', j.token);
+          loadDashboard();
+        } else {
+          errEl.textContent = j.error || 'Parol noto\'g\'ri';
+          btn.disabled=false; btn.innerHTML='Kirish →';
+        }
+      })
+      .catch(function(){ errEl.textContent='Server bilan bog\'liq xato.'; btn.disabled=false; btn.innerHTML='Kirish →'; });
+  }
+
+  /* ---- Dashboard ---- */
+  function loadDashboard() {
+    renderDash();
+    loadTeachers();
+  }
+
+  function renderDash() {
+    var st = S.stats;
+    document.getElementById('app').innerHTML =
+      '<div class="dash">' +
+        '<aside class="sidebar">' +
+          '<div class="sidebar-logo"><div class="logo-row"><div class="logo-mark">D</div><div class="logo-name">Dream<span>Teach</span></div></div></div>' +
+          '<button class="nav-item'+(S.view==='teachers'?' active':'') +'" data-view="teachers"><span class="ic">👥</span> O\'qituvchilar</button>' +
+          '<button class="nav-item'+(S.view==='stats'?' active':'') +'" data-view="stats"><span class="ic">📊</span> Statistika</button>' +
+          '<div class="nav-sep"></div>' +
+          '<button class="nav-item" id="refreshNav"><span class="ic">🔄</span> Yangilash</button>' +
+          '<div class="sidebar-bottom">' +
+            '<div class="admin-badge"><div class="admin-ava">A</div><div><div class="admin-name">Admin</div><div class="admin-role">DreamTeach</div></div></div>' +
+            '<button class="logout-btn" id="logoutBtn" style="width:100%;justify-content:center;margin-top:8px">🔓 Chiqish</button>' +
+          '</div>' +
+        '</aside>' +
+        '<main class="main" id="mainContent">' +
+          renderMainContent() +
+        '</main>' +
+      '</div>';
+
+    document.querySelectorAll('[data-view]').forEach(function(btn) {
+      btn.onclick = function() { S.view = btn.dataset.view; renderDash(); };
+    });
+    document.getElementById('logoutBtn').onclick = function() {
+      S.token=''; sessionStorage.removeItem('dt_admin_token'); showLogin();
+    };
+    document.getElementById('refreshNav').onclick = function() { loadTeachers(); };
+
+    bindMainEvents();
+  }
+
+  function renderMainContent() {
+    if (S.view === 'teachers') return renderTeachersView();
+    if (S.view === 'stats') return renderStatsView();
+    return '';
+  }
+
+  /* ---- Teachers view ---- */
+  function renderTeachersView() {
+    var st = S.stats;
+    var filters = [
+      { key:'all', label:'Barchasi', count: st.total },
+      { key:'pending_admin', label:'⏳ Kutmoqda', count: st.pending_admin },
+      { key:'pending_exam', label:'📝 Imtihon', count: st.pending_exam },
+      { key:'approved', label:'✅ Tasdiqlangan', count: st.approved },
+      { key:'rejected', label:'❌ Rad etilgan', count: st.rejected }
+    ];
+
+    var list = S.teachers.filter(function(t) {
+      var matchStatus = S.filter==='all' || t.status===S.filter;
+      var q = S.search.toLowerCase();
+      var matchSearch = !q || t.name.toLowerCase().includes(q) || t.specialty.toLowerCase().includes(q) || (t.phone||'').includes(q);
+      return matchStatus && matchSearch;
+    });
+
+    return '<div class="anim">' +
+      '<div class="page-title">👥 O\'qituvchilar <span style="font-size:16px;font-weight:600;color:var(--muted)">'+st.total+'</span></div>' +
+      '<p class="page-sub">Ro\'yxatdan o\'tgan barcha o\'qituvchilar va ularning holati</p>' +
+
+      '<div class="kpis">' +
+        '<div class="kpi c-purple"><span class="v">'+st.total+'</span><span class="l">Jami</span></div>' +
+        '<div class="kpi c-yellow"><span class="v">'+st.pending_admin+'</span><span class="l">Admin tasdiq kutmoqda</span></div>' +
+        '<div class="kpi c-orange" style="--kpi-c:var(--orange)"><span class="v" style="color:var(--orange)">'+st.pending_exam+'</span><span class="l">Imtihon kutmoqda</span></div>' +
+        '<div class="kpi c-green"><span class="v">'+st.approved+'</span><span class="l">Tasdiqlangan</span></div>' +
+        '<div class="kpi c-red"><span class="v">'+st.rejected+'</span><span class="l">Rad etilgan</span></div>' +
+      '</div>' +
+
+      '<div class="filters">' +
+        filters.map(function(f) {
+          return '<button class="filter-btn'+(S.filter===f.key?' active':'')+'" data-filter="'+f.key+'">'+f.label+' <b style="opacity:.7">'+f.count+'</b></button>';
+        }).join('') +
+        '<div class="search-wrap"><span class="search-ico">🔍</span><input class="search-input" id="searchIn" placeholder="Qidirish…" value="'+esc(S.search)+'"></div>' +
+      '</div>' +
+
+      (list.length === 0 ?
+        '<div class="empty"><div class="icon">🗂️</div><p>O\'qituvchilar topilmadi</p></div>' :
+        '<div class="table-wrap"><table>' +
+          '<thead><tr>' +
+            '<th>O\'qituvchi</th>' +
+            '<th>Mutaxassislik</th>' +
+            '<th>Resume</th>' +
+            '<th>Imtihon</th>' +
+            '<th>Holat</th>' +
+            '<th>Vaqt</th>' +
+            '<th></th>' +
+          '</tr></thead>' +
+          '<tbody>' +
+          list.map(function(t) {
+            var rscore = t.resumeScore || 0;
+            var eScore = t.examScore;
+            var rCls = rscore>=8?'hi':rscore>=6?'mid':'lo';
+            var sCls = { pending_exam:'pending-exam', pending_admin:'pending', approved:'approved', rejected:'rejected' }[t.status] || 'pending';
+            var sLabel = { pending_exam:'📝 Imtihon', pending_admin:'⏳ Kutmoqda', approved:'✅ Tasdiqlangan', rejected:'❌ Rad' }[t.status] || t.status;
+            return '<tr data-tid="'+esc(t.id)+'">' +
+              '<td><div style="font-weight:600">'+esc(t.name)+'</div><div style="font-size:12px;color:var(--muted)">'+esc(t.phone||'—')+'</div></td>' +
+              '<td><div>'+esc(t.specialty)+'</div><div style="font-size:12px;color:var(--muted)">'+t.experience+' yil</div></td>' +
+              '<td><div class="score-badge '+rCls+'">'+rscore+'</div></td>' +
+              '<td>'+(eScore!=null ? '<span style="font-weight:700;color:'+(eScore>=60?'var(--green)':'var(--red)')+'">'+eScore+'%</span>' : '<span style="color:var(--muted)">—</span>')+'</td>' +
+              '<td><span class="chip '+sCls+'">'+sLabel+'</span></td>' +
+              '<td style="color:var(--muted);font-size:12px">'+ago(t.createdAt)+'</td>' +
+              '<td><button class="btn" style="border-color:var(--border);background:transparent;color:var(--muted);font-size:12px" data-detail="'+esc(t.id)+'">Ko\'rish →</button></td>' +
+            '</tr>';
+          }).join('') +
+          '</tbody>' +
+        '</table></div>'
+      ) +
+    '</div>';
+  }
+
+  /* ---- Stats view ---- */
+  function renderStatsView() {
+    var st = S.stats;
+    var total = Math.max(1, st.total);
+    var pctApproved = Math.round(st.approved / total * 100);
+    var pctRejected = Math.round(st.rejected / total * 100);
+    var pctPending = Math.round((st.pending_admin + st.pending_exam) / total * 100);
+    return '<div class="anim">' +
+      '<div class="page-title">📊 Statistika</div>' +
+      '<p class="page-sub">O\'qituvchilar va platforma umumiy ko\'rsatkichlari</p>' +
+      '<div class="kpis" style="margin-bottom:24px">' +
+        '<div class="kpi c-purple"><span class="v">'+st.total+'</span><span class="l">Jami ariza</span></div>' +
+        '<div class="kpi c-green"><span class="v">'+pctApproved+'%</span><span class="l">Tasdiqlash darajasi</span></div>' +
+        '<div class="kpi c-yellow"><span class="v">'+pctPending+'%</span><span class="l">Ko\'rib chiqilmoqda</span></div>' +
+        '<div class="kpi c-red"><span class="v">'+pctRejected+'%</span><span class="l">Rad etish darajasi</span></div>' +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">' +
+        '<div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px">' +
+          '<div style="font-weight:700;margin-bottom:16px">Holat bo\'yicha taqsimot</div>' +
+          renderBar('Tasdiqlangan', st.approved, st.total, 'var(--green)') +
+          renderBar('Kutmoqda (Admin)', st.pending_admin, st.total, 'var(--yellow)') +
+          renderBar('Imtihon kutmoqda', st.pending_exam, st.total, 'var(--orange)') +
+          renderBar('Rad etilgan', st.rejected, st.total, 'var(--red)') +
+        '</div>' +
+        '<div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px">' +
+          '<div style="font-weight:700;margin-bottom:16px">Murojaat statistikasi</div>' +
+          '<div style="display:flex;flex-direction:column;gap:14px">' +
+            statItem('📥', 'Jami arizalar', st.total) +
+            statItem('✅', 'Tasdiqlangan', st.approved) +
+            statItem('⏳', 'Tekshirilmoqda', st.pending_admin + st.pending_exam) +
+            statItem('❌', 'Rad etilgan', st.rejected) +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function renderBar(label, val, total, color) {
+    var pct = total ? Math.round(val/total*100) : 0;
+    return '<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">' +
+      '<span>'+esc(label)+'</span><span style="font-weight:600;color:'+color+'">'+val+' ('+pct+'%)</span>' +
+      '</div><div class="prog-bar"><div class="prog-fill" style="width:'+pct+'%;background:'+color+'"></div></div></div>';
+  }
+
+  function statItem(icon, label, val) {
+    return '<div style="display:flex;align-items:center;gap:12px"><span style="font-size:20px">'+icon+'</span>' +
+      '<div style="flex:1"><div style="font-size:13px;color:var(--muted)">'+esc(label)+'</div></div>' +
+      '<span style="font-size:18px;font-weight:800">'+val+'</span></div>';
+  }
+
+  /* ---- Events ---- */
+  function bindMainEvents() {
+    var main = document.getElementById('mainContent');
+    if (!main) return;
+
+    main.addEventListener('click', function(e) {
+      var filterBtn = e.target.closest('[data-filter]');
+      if (filterBtn) { S.filter = filterBtn.dataset.filter; renderMain(); return; }
+
+      var detailBtn = e.target.closest('[data-detail]');
+      if (detailBtn) { showDetail(detailBtn.dataset.detail); return; }
+
+      var trRow = e.target.closest('tbody tr[data-tid]');
+      if (trRow && !e.target.closest('button')) { showDetail(trRow.dataset.tid); return; }
+    });
+
+    var searchIn = main.querySelector('#searchIn');
+    if (searchIn) {
+      searchIn.oninput = function() { S.search = searchIn.value; renderMain(); };
+    }
+  }
+
+  function renderMain() {
+    var main = document.getElementById('mainContent');
+    if (!main) return;
+    main.innerHTML = renderMainContent();
+    bindMainEvents();
+  }
+
+  /* ---- Teacher Detail Modal ---- */
+  function showDetail(id) {
+    var t = S.teachers.find(function(x){ return x.id===id; });
+    if (!t) return;
+    var ra = t.resumeAnalysis || {};
+    var er = t.examResult || {};
+    var sCls = { pending_exam:'pending-exam', pending_admin:'pending', approved:'approved', rejected:'rejected' }[t.status] || 'pending';
+    var sLabel = { pending_exam:'📝 Imtihon kutmoqda', pending_admin:'⏳ Admin tasdiq kutmoqda', approved:'✅ Tasdiqlangan', rejected:'❌ Rad etilgan' }[t.status] || t.status;
+
+    var strengths = (ra.strengths||[]).map(function(s){ return '<span class="tag ok">✓ '+esc(s)+'</span>'; }).join('');
+    var weaknesses = (ra.weaknesses||[]).map(function(s){ return '<span class="tag bad">✗ '+esc(s)+'</span>'; }).join('');
+
+    var examDetails = '';
+    if (er.details && er.details.length) {
+      examDetails = '<div style="margin-top:12px;display:flex;flex-direction:column;gap:6px">' +
+        er.details.map(function(d, i) {
+          return '<div style="display:flex;gap:8px;padding:8px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid var(--border)">' +
+            '<span>'+(d.correct?'✅':'❌')+'</span>' +
+            '<div><div style="font-size:12px;font-weight:600">'+esc(d.q)+'</div>' +
+            '<div style="font-size:11px;color:var(--muted)">'+esc(d.explanation||'')+'</div></div>' +
+          '</div>';
+        }).join('') +
+      '</div>';
+    }
+
+    document.getElementById('modal').innerHTML =
+      '<div class="modal-overlay" id="modalOverlay">' +
+        '<div class="modal">' +
+          '<div class="modal-header">' +
+            '<div>' +
+              '<div style="font-size:20px;font-weight:700;margin-bottom:4px">'+esc(t.name)+'</div>' +
+              '<div style="display:flex;align-items:center;gap:8px">' +
+                '<span class="chip '+sCls+'">'+sLabel+'</span>' +
+                '<span style="color:var(--muted);font-size:12px">'+esc(t.specialty)+' · '+t.experience+' yil</span>' +
+              '</div>' +
+            '</div>' +
+            '<button class="modal-close" id="modalClose">✕</button>' +
+          '</div>' +
+
+          '<div style="display:flex;flex-direction:column;gap:1px">' +
+            '<div class="detail-row"><span class="detail-key">Telefon</span><span class="detail-val">'+esc(t.phone||'—')+'</span></div>' +
+            '<div class="detail-row"><span class="detail-key">Ro\'yxat sanasi</span><span class="detail-val">'+ago(t.createdAt)+'</span></div>' +
+          '</div>' +
+
+          '<div class="ai-block" style="margin-top:16px">' +
+            '<div class="ai-block-title">🤖 AI Resume Tahlili</div>' +
+            '<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">' +
+              '<div class="score-badge '+(t.resumeScore>=8?'hi':t.resumeScore>=6?'mid':'lo')+'" style="width:48px;height:48px;font-size:16px">'+( t.resumeScore||0)+'</div>' +
+              '<div>' +
+                '<div style="font-weight:700">Resume bali: '+( t.resumeScore||0)+'/10</div>' +
+                '<div style="font-size:12px;color:var(--muted)">'+esc(ra.recommendation||'')+'</div>' +
+              '</div>' +
+            '</div>' +
+            (ra.summary ? '<p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:8px">'+esc(ra.summary)+'</p>' : '') +
+            (strengths ? '<div class="tag-row">'+strengths+'</div>' : '') +
+            (weaknesses ? '<div class="tag-row" style="margin-top:6px">'+weaknesses+'</div>' : '') +
+          '</div>' +
+
+          (t.resumeText ? '<div style="margin-bottom:12px"><div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Resume matni</div><div class="resume-box">'+esc(t.resumeText)+'</div></div>' : '') +
+
+          (er.score != null ? '<div class="ai-block" style="border-color:rgba(0,229,255,.2);background:rgba(0,229,255,.05)">' +
+            '<div class="ai-block-title" style="color:var(--accent2)">🧠 Imtihon Natijasi</div>' +
+            '<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">' +
+              '<div style="font-size:28px;font-weight:800;color:'+(er.score>=60?'var(--green)':'var(--red)')+'">'+er.score+'%</div>' +
+              '<div>' +
+                '<div style="font-weight:700">'+(er.passed?'✅ O\'tdi':'❌ O\'ta olmadi')+'</div>' +
+                '<div style="font-size:12px;color:var(--muted)">'+esc(er.feedback||'')+'</div>' +
+              '</div>' +
+            '</div>' +
+            examDetails +
+          '</div>' : '') +
+
+          (t.adminNote ? '<div style="margin-bottom:12px;padding:12px;background:rgba(255,255,255,.03);border-radius:10px;border:1px solid var(--border)">' +
+            '<div class="f-label">Admin izohi</div><p style="font-size:14px;margin-top:4px">'+esc(t.adminNote)+'</p></div>' : '') +
+
+          '<div><label class="f-label">Admin izohi (ixtiyoriy)</label><input class="note-input" id="adminNote" placeholder="Izoh qoldiring…" value="'+esc(t.adminNote||'')+'"></div>' +
+
+          '<div class="action-row">' +
+            (t.status==='approved' ? '<span style="color:var(--green);font-weight:600">✅ Allaqachon tasdiqlangan</span>' :
+             t.status==='rejected' ? '<button class="btn btn-approve" data-action="approve" data-tid="'+esc(t.id)+'">✅ Tasdiqlash</button>' :
+             t.status==='pending_admin' ? '<button class="btn btn-approve" data-action="approve" data-tid="'+esc(t.id)+'">✅ Tasdiqlash</button>' : '') +
+            (t.status!=='rejected' && t.status!=='approved' ? '<button class="btn btn-reject" data-action="reject" data-tid="'+esc(t.id)+'">❌ Rad etish</button>' : '') +
+            (t.status!=='pending_exam' ? '<button class="btn btn-reset" data-action="reset" data-tid="'+esc(t.id)+'">🔄 Qayta imtihon</button>' : '') +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+    document.getElementById('modalClose').onclick = closeModal;
+    document.getElementById('modalOverlay').onclick = function(e){ if(e.target===this) closeModal(); };
+
+    document.querySelectorAll('[data-action]').forEach(function(btn) {
+      btn.onclick = function() {
+        var action = btn.dataset.action, tid = btn.dataset.tid;
+        var note = (document.getElementById('adminNote')||{}).value || '';
+        doAction(action, tid, note);
+      };
+    });
+  }
+
+  function closeModal() { document.getElementById('modal').innerHTML = ''; }
+
+  function doAction(action, id, note) {
+    var url = '/api/admin/teachers/' + id + '/' + (action==='reset'?'reset-exam':action);
+    authFetch(url, { method:'POST', body: JSON.stringify({ note: note }) })
+      .then(function(j) {
+        if (j.ok) {
+          toast(action==='approve'?'✅ Tasdiqlandi':action==='reject'?'❌ Rad etildi':'🔄 Qayta imtihonga yuborildi', 'ok');
+          closeModal();
+          loadTeachers();
+        } else {
+          toast(j.error||'Xato', 'err');
+        }
+      })
+      .catch(function(){ toast('Server xatosi', 'err'); });
+  }
+
+  /* ---- Load data ---- */
+  function loadTeachers() {
+    authFetch('/api/admin/teachers')
+      .then(function(j) {
+        if (j.teachers) {
+          S.teachers = j.teachers;
+          S.stats = j.stats || S.stats;
+          renderMain();
+        } else if (j.error === "Ruxsat yo'q") {
+          S.token = ''; sessionStorage.removeItem('dt_admin_token'); showLogin();
+        }
+      })
+      .catch(function(){ toast('Ma\'lumotlarni yuklashda xato', 'err'); });
+  }
+
+  /* ---- Boot ---- */
+  if (S.token) loadDashboard();
+  else showLogin();
+})();
+</script>
+</body>
+</html>

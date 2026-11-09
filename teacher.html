@@ -1,0 +1,901 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DreamTeach — O'qituvchi paneli</title>
+<meta name="description" content="DreamTeach o'qituvchi paneli — ro'yxatdan o'ting, AI imtihonidan o'ting va kurs yuklang.">
+<meta name="theme-color" content="#0a1628">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="app.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a1628;
+  --bg2: #0f1f3d;
+  --bg3: #152848;
+  --card: rgba(255,255,255,0.05);
+  --border: rgba(255,255,255,0.1);
+  --accent: #6c63ff;
+  --accent2: #00e5ff;
+  --green: #00ff94;
+  --red: #ff4f6a;
+  --yellow: #ffd700;
+  --text: #e8eaf6;
+  --muted: #8892a4;
+  --radius: 16px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); }
+body { min-height: 100vh; display: flex; flex-direction: column; }
+
+/* BG gradient */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: -1;
+  background: radial-gradient(ellipse 80% 60% at 20% 10%, rgba(108,99,255,.18) 0%, transparent 60%),
+              radial-gradient(ellipse 60% 50% at 80% 80%, rgba(0,229,255,.12) 0%, transparent 60%),
+              var(--bg);
+}
+
+/* Layout */
+.page-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 24px 16px 48px;
+  min-height: 100vh;
+}
+.logo-row {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 36px; align-self: flex-start;
+}
+.logo-mark {
+  width: 44px; height: 44px; border-radius: 12px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; font-weight: 800; color: #fff;
+  box-shadow: 0 4px 20px rgba(108,99,255,.4);
+}
+.logo-name { font-size: 22px; font-weight: 700; }
+.logo-name span { color: var(--accent2); }
+
+/* Panel container */
+.panel {
+  width: 100%; max-width: 560px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 36px 32px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 20px 60px rgba(0,0,0,.4);
+}
+@media (max-width: 600px) { .panel { padding: 24px 20px; } }
+
+.panel-title {
+  font-size: 24px; font-weight: 700; margin-bottom: 6px;
+}
+.panel-sub { color: var(--muted); font-size: 14px; margin-bottom: 28px; }
+
+/* Steps indicator */
+.steps {
+  display: flex; gap: 8px; margin-bottom: 32px;
+}
+.step-dot {
+  flex: 1; height: 4px; border-radius: 999px;
+  background: var(--border); transition: background .3s;
+}
+.step-dot.done { background: var(--accent); }
+.step-dot.active { background: var(--accent2); }
+
+/* Form */
+.f-group { margin-bottom: 20px; }
+.f-label {
+  display: block; font-size: 13px; font-weight: 600;
+  color: var(--muted); margin-bottom: 8px; letter-spacing: .02em;
+  text-transform: uppercase;
+}
+.f-input, .f-textarea, .f-select {
+  width: 100%; padding: 13px 16px;
+  background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+  border-radius: 12px; color: var(--text); font-size: 15px;
+  font-family: inherit; outline: none; transition: border .2s, background .2s;
+  -webkit-appearance: none;
+}
+.f-input:focus, .f-textarea:focus, .f-select:focus {
+  border-color: var(--accent); background: rgba(108,99,255,.08);
+}
+.f-textarea { resize: vertical; min-height: 120px; }
+.f-select option { background: #1a2a4a; }
+.f-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 480px) { .f-row { grid-template-columns: 1fr; } }
+
+/* Buttons */
+.btn-primary {
+  width: 100%; padding: 15px; border-radius: 14px; border: none;
+  background: linear-gradient(135deg, var(--accent), #9b6cff);
+  color: #fff; font-size: 16px; font-weight: 700; cursor: pointer;
+  box-shadow: 0 4px 24px rgba(108,99,255,.5);
+  transition: transform .15s, box-shadow .15s, opacity .15s;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(108,99,255,.6); }
+.btn-primary:active:not(:disabled) { transform: translateY(0); }
+.btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+.btn-ghost {
+  padding: 10px 20px; border-radius: 10px; border: 1px solid var(--border);
+  background: transparent; color: var(--muted); font-size: 14px; cursor: pointer;
+  transition: all .2s;
+}
+.btn-ghost:hover { border-color: var(--accent); color: var(--text); }
+
+/* AI Analysis card */
+.ai-card {
+  border-radius: 16px; padding: 20px;
+  margin: 20px 0; border: 1px solid var(--border);
+  background: rgba(255,255,255,0.03);
+}
+.ai-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.ai-label {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600;
+}
+.ai-label.ok { background: rgba(0,255,148,.12); color: var(--green); }
+.ai-label.warn { background: rgba(255,79,106,.12); color: var(--red); }
+.ai-label.info { background: rgba(108,99,255,.15); color: var(--accent2); }
+
+.score-ring {
+  width: 80px; height: 80px; border-radius: 50%;
+  background: conic-gradient(var(--accent) var(--pct), rgba(255,255,255,0.1) 0);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 16px;
+  position: relative;
+}
+.score-ring::before {
+  content: ''; position: absolute; inset: 8px;
+  border-radius: 50%; background: var(--bg2);
+}
+.score-val { position: relative; z-index: 1; font-size: 22px; font-weight: 800; }
+
+.tag-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.tag {
+  padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 500;
+  background: rgba(0,255,148,.1); color: var(--green); border: 1px solid rgba(0,255,148,.2);
+}
+.tag.bad { background: rgba(255,79,106,.1); color: var(--red); border-color: rgba(255,79,106,.2); }
+
+/* Quiz / Exam */
+.exam-wrap { display: flex; flex-direction: column; gap: 20px; }
+.q-card {
+  background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+  border-radius: 14px; padding: 20px;
+  transition: border-color .2s;
+}
+.q-num { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
+.q-text { font-size: 15px; font-weight: 600; margin-bottom: 16px; line-height: 1.5; }
+.q-opts { display: flex; flex-direction: column; gap: 8px; }
+.q-opt {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; border-radius: 10px;
+  border: 1px solid var(--border); cursor: pointer;
+  background: transparent; color: var(--text); font-size: 14px;
+  font-family: inherit; text-align: left; transition: all .15s;
+}
+.q-opt:hover { border-color: var(--accent); background: rgba(108,99,255,.08); }
+.q-opt.sel { border-color: var(--accent); background: rgba(108,99,255,.15); }
+.q-opt.right { border-color: var(--green); background: rgba(0,255,148,.1); color: var(--green); }
+.q-opt.wrong { border-color: var(--red); background: rgba(255,79,106,.1); color: var(--red); }
+.q-opt.disabled { cursor: not-allowed; }
+.opt-key {
+  width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+  background: rgba(255,255,255,0.08); border: 1px solid var(--border);
+}
+
+/* Timer bar */
+.timer-bar {
+  height: 4px; border-radius: 999px; background: var(--border);
+  margin-bottom: 24px; overflow: hidden;
+}
+.timer-fill {
+  height: 100%; border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  transition: width .9s linear, background .3s;
+}
+.timer-fill.urgent { background: linear-gradient(90deg, var(--red), var(--yellow)); }
+
+/* Status screen */
+.status-icon {
+  width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 20px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36px;
+}
+.status-icon.pending { background: rgba(255,215,0,.1); border: 2px solid rgba(255,215,0,.3); }
+.status-icon.approved { background: rgba(0,255,148,.1); border: 2px solid rgba(0,255,148,.3); }
+.status-icon.rejected { background: rgba(255,79,106,.1); border: 2px solid rgba(255,79,106,.3); }
+
+/* Dashboard */
+.db-kpis { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px; }
+.db-kpi {
+  background: rgba(255,255,255,.04); border: 1px solid var(--border);
+  border-radius: 14px; padding: 16px;
+}
+.db-kpi .v { font-size: 26px; font-weight: 800; display: block; margin-bottom: 2px; }
+.db-kpi .l { font-size: 12px; color: var(--muted); font-weight: 500; }
+.db-kpi.c-purple .v { color: var(--accent); }
+.db-kpi.c-cyan .v { color: var(--accent2); }
+.db-kpi.c-green .v { color: var(--green); }
+.db-kpi.c-yellow .v { color: var(--yellow); }
+
+.section-title {
+  font-size: 16px; font-weight: 700; margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+
+.lesson-card {
+  background: rgba(255,255,255,.03); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; margin-bottom: 10px;
+}
+.lesson-card .l-info .nm { font-weight: 600; font-size: 15px; }
+.lesson-card .l-info .meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600;
+}
+.chip.ok { background: rgba(0,255,148,.1); color: var(--green); }
+.chip.warn { background: rgba(255,215,0,.1); color: var(--yellow); }
+.chip.info { background: rgba(108,99,255,.12); color: var(--accent2); }
+
+/* Publish form */
+.pub-form { display: flex; flex-direction: column; gap: 16px; }
+.pub-form .f-group { margin-bottom: 0; }
+
+/* Error */
+.err-msg { color: var(--red); font-size: 13px; margin-top: 8px; min-height: 20px; }
+.ok-msg { color: var(--green); font-size: 13px; margin-top: 8px; }
+
+/* Spinner */
+.spin {
+  display: inline-block; width: 20px; height: 20px; border-radius: 50%;
+  border: 2.5px solid rgba(255,255,255,.3);
+  border-top-color: #fff;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Fade in */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+.anim { animation: fadeUp .35s ease both; }
+
+/* Score result */
+.result-banner {
+  border-radius: 16px; padding: 24px; text-align: center; margin-bottom: 20px;
+  border: 1px solid;
+}
+.result-banner.pass { background: rgba(0,255,148,.06); border-color: rgba(0,255,148,.25); }
+.result-banner.fail { background: rgba(255,79,106,.06); border-color: rgba(255,79,106,.2); }
+.result-score { font-size: 48px; font-weight: 800; }
+.result-banner.pass .result-score { color: var(--green); }
+.result-banner.fail .result-score { color: var(--red); }
+
+/* Nav tabs (dashboard) */
+.db-tabs { display: flex; gap: 4px; background: rgba(255,255,255,.04); border-radius: 12px; padding: 4px; margin-bottom: 20px; }
+.db-tab {
+  flex: 1; padding: 10px; border-radius: 9px; border: none;
+  background: transparent; color: var(--muted); font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: all .2s; font-family: inherit;
+}
+.db-tab.active { background: var(--accent); color: #fff; box-shadow: 0 2px 10px rgba(108,99,255,.4); }
+</style>
+</head>
+<body>
+<div class="page-wrap">
+  <div class="logo-row">
+    <div class="logo-mark">D</div>
+    <div class="logo-name">Dream<span>Teach</span></div>
+  </div>
+  <div id="app" style="width:100%;max-width:560px"></div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---- state ---- */
+  var S = {
+    step: 'login',   // login | register | resume_result | exam | exam_result | waiting | dashboard
+    teacher: null,
+    teacherId: localStorage.getItem('dt_teacher_id') || null,
+    examQuestions: [],
+    examAnswers: [],
+    examChecked: false,
+    examResult: null,
+    timerVal: 30, timerEl: null, timerInt: null,
+    myLessons: [],
+    dashTab: 'publish'
+  };
+
+  var API = location.origin;
+  var app = document.getElementById('app');
+
+  /* ---- helpers ---- */
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+  function mmss(s) { return Math.floor(s/60)+':'+(s%60<10?'0':'')+Math.round(s%60); }
+
+  function post(url, data) {
+    return fetch(API + url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    }).then(function(r) { return r.json(); });
+  }
+
+  function ago(ts) {
+    if (!ts) return '';
+    var s = Math.round((Date.now() - ts) / 1000);
+    if (s < 60) return 'hozirgina';
+    if (s < 3600) return Math.round(s/60) + ' daq oldin';
+    if (s < 86400) return Math.round(s/3600) + ' soat oldin';
+    return Math.round(s/86400) + ' kun oldin';
+  }
+
+  /* ---- steps bar ---- */
+  var STEPS = { login:0, register:0, resume_result:1, exam:2, exam_result:3, waiting:3, dashboard:4 };
+  var TOTAL_STEPS = 5;
+  function stepsHtml(cur) {
+    var n = STEPS[cur] || 0;
+    var h = '';
+    for (var i = 0; i < TOTAL_STEPS; i++) {
+      h += '<div class="step-dot' + (i < n ? ' done' : i === n ? ' active' : '') + '"></div>';
+    }
+    return '<div class="steps">' + h + '</div>';
+  }
+
+  /* ============================================================
+     SCREENS
+  ============================================================ */
+
+  /* --- Login / Resume check screen --- */
+  function showLogin() {
+    S.step = 'login';
+    app.innerHTML = '<div class="panel anim">' +
+      stepsHtml('login') +
+      '<div class="panel-title">O\'qituvchi sifatida kirish</div>' +
+      '<p class="panel-sub">Ro\'yxatdan o\'tgan bo\'lsangiz, ID raqamingizni kiriting. Yangi bo\'lsangiz — ro\'yxatdan o\'ting.</p>' +
+      '<div class="f-group"><label class="f-label">O\'qituvchi ID</label><input class="f-input" id="loginId" placeholder="tr-abc123..." autocomplete="off"></div>' +
+      '<div class="err-msg" id="loginErr"></div>' +
+      '<button class="btn-primary" id="loginBtn" style="margin-bottom:12px"><span>Kirish</span></button>' +
+      '<div style="text-align:center;color:var(--muted);font-size:13px">Hali ro\'yxatdan o\'tmadingizmi? <button class="btn-ghost" id="toRegBtn" style="padding:6px 14px;margin-left:6px">Ro\'yxatdan o\'tish</button></div>' +
+      '</div>';
+
+    // autofill
+    if (S.teacherId) {
+      document.getElementById('loginId').value = S.teacherId;
+    }
+
+    document.getElementById('loginBtn').onclick = function() { doLogin(); };
+    document.getElementById('loginId').addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
+    document.getElementById('toRegBtn').onclick = function() { showRegister(); };
+  }
+
+  function doLogin() {
+    var id = document.getElementById('loginId').value.trim();
+    var errEl = document.getElementById('loginErr');
+    if (!id) { errEl.textContent = 'ID kiriting'; return; }
+    errEl.textContent = '';
+    var btn = document.getElementById('loginBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spin"></span> Tekshirilmoqda…';
+    fetch(API + '/api/teacher/status/' + encodeURIComponent(id))
+      .then(function(r) { return r.json(); })
+      .then(function(j) {
+        if (j.error) { errEl.textContent = 'Topilmadi. ID noto\'g\'ri yoki qayta ro\'yxatdan o\'ting.'; btn.disabled=false; btn.innerHTML='<span>Kirish</span>'; return; }
+        S.teacher = j; S.teacherId = j.id;
+        localStorage.setItem('dt_teacher_id', j.id);
+        routeByStatus(j.status);
+      })
+      .catch(function() { errEl.textContent = 'Server bilan bog\'liq xato. Internet tekshiring.'; btn.disabled=false; btn.innerHTML='<span>Kirish</span>'; });
+  }
+
+  function routeByStatus(status) {
+    if (status === 'pending_exam') showExamIntro();
+    else if (status === 'pending_admin') showWaiting();
+    else if (status === 'approved') showDashboard();
+    else if (status === 'rejected') showRejected();
+    else showLogin();
+  }
+
+  /* --- Register --- */
+  function showRegister() {
+    S.step = 'register';
+    app.innerHTML = '<div class="panel anim">' +
+      stepsHtml('register') +
+      '<div class="panel-title">Ro\'yxatdan o\'tish</div>' +
+      '<p class="panel-sub">Ma\'lumotlaringizni kiriting. AI resumeni avtomatik tahlil qiladi.</p>' +
+      '<div class="f-row">' +
+        '<div class="f-group"><label class="f-label">Ism Familiya</label><input class="f-input" id="regName" placeholder="Aziz Karimov" required></div>' +
+        '<div class="f-group"><label class="f-label">Telefon</label><input class="f-input" id="regPhone" placeholder="+998901234567" type="tel"></div>' +
+      '</div>' +
+      '<div class="f-row">' +
+        '<div class="f-group"><label class="f-label">Mutaxassislik</label><input class="f-input" id="regSpec" placeholder="Python dasturlash" required></div>' +
+        '<div class="f-group"><label class="f-label">Tajriba (yil)</label><input class="f-input" id="regExp" type="number" min="0" max="50" placeholder="3"></div>' +
+      '</div>' +
+      '<div class="f-group"><label class="f-label">Resume / Haqingizda</label>' +
+        '<textarea class="f-textarea" id="regResume" rows="6" placeholder="Qisqacha o\'zingiz haqingizda yozing: ta\'lim, sertifikatlar, loyihalar, o\'qitgan kurslar..."></textarea></div>' +
+      '<div class="err-msg" id="regErr"></div>' +
+      '<button class="btn-primary" id="regBtn" style="margin-bottom:12px"><span>✨ AI tahlil qilsin</span></button>' +
+      '<div style="text-align:center"><button class="btn-ghost" id="backLoginBtn">← Orqaga</button></div>' +
+      '</div>';
+
+    document.getElementById('regBtn').onclick = function() { doRegister(); };
+    document.getElementById('backLoginBtn').onclick = function() { showLogin(); };
+  }
+
+  function doRegister() {
+    var name = document.getElementById('regName').value.trim();
+    var phone = document.getElementById('regPhone').value.trim();
+    var specialty = document.getElementById('regSpec').value.trim();
+    var experience = document.getElementById('regExp').value;
+    var resumeText = document.getElementById('regResume').value.trim();
+    var errEl = document.getElementById('regErr');
+    if (!name) { errEl.textContent = 'Ismingizni kiriting'; return; }
+    if (!specialty) { errEl.textContent = 'Mutaxassislikni kiriting'; return; }
+    errEl.textContent = '';
+    var btn = document.getElementById('regBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spin"></span> AI resumeni tahlil qilmoqda…';
+
+    post('/api/teacher/register', { name: name, phone: phone, specialty: specialty, experience: +experience||0, resumeText: resumeText })
+      .then(function(j) {
+        if (j.existing) {
+          S.teacher = { id: j.teacher.id, status: j.teacher.status, name: j.teacher.name };
+          S.teacherId = j.teacher.id;
+          localStorage.setItem('dt_teacher_id', j.teacher.id);
+          routeByStatus(j.teacher.status);
+          return;
+        }
+        if (j.error) { errEl.textContent = j.error; btn.disabled=false; btn.innerHTML='<span>✨ AI tahlil qilsin</span>'; return; }
+        S.teacher = j.teacher;
+        S.teacherId = j.teacher.id;
+        localStorage.setItem('dt_teacher_id', j.teacher.id);
+        showResumeResult(j.teacher.analysis, j.teacher.resumeScore);
+      })
+      .catch(function() { errEl.textContent = 'Server xatosi. Qayta urining.'; btn.disabled=false; btn.innerHTML='<span>✨ AI tahlil qilsin</span>'; });
+  }
+
+  /* --- Resume Result --- */
+  function showResumeResult(analysis, score) {
+    S.step = 'resume_result';
+    var pct = Math.round((score/10)*100);
+    var passed = analysis.passed !== false && score >= 7;
+    var color = passed ? 'var(--green)' : 'var(--red)';
+    var label = passed ? '✅ AI tasdiqladi — Imtihonga yo\'ldiring' : '⚠️ Imtihonga yo\'ldiring — Admin ko\'rib chiqadi';
+
+    var strengths = (analysis.strengths || []).map(function(s){ return '<span class="tag">✓ '+esc(s)+'</span>'; }).join('');
+    var weaknesses = (analysis.weaknesses || []).map(function(s){ return '<span class="tag bad">✗ '+esc(s)+'</span>'; }).join('');
+
+    app.innerHTML = '<div class="panel anim">' +
+      stepsHtml('resume_result') +
+      '<div class="panel-title">AI Resume Tahlili</div>' +
+      '<p class="panel-sub">Resumeingiz AI tomonidan baholandi.</p>' +
+      '<div class="ai-card">' +
+        '<div style="text-align:center;margin-bottom:16px">' +
+          '<div class="score-ring" style="--pct:'+pct+'%"><span class="score-val" style="color:'+color+'">'+score+'</span></div>' +
+          '<div style="font-size:13px;color:var(--muted);margin-top:4px">/ 10 ball</div>' +
+        '</div>' +
+        '<div class="ai-label '+(passed?'ok':'warn')+'" style="margin-bottom:12px;display:inline-flex">'+label+'</div>' +
+        '<p style="font-size:14px;line-height:1.6;color:var(--muted);margin-bottom:12px">'+esc(analysis.summary||'')+'</p>' +
+        (strengths ? '<div class="tag-row">'+strengths+'</div>' : '') +
+        (weaknesses ? '<div class="tag-row" style="margin-top:8px">'+weaknesses+'</div>' : '') +
+        '<p style="font-size:13px;color:var(--muted);margin-top:12px;font-style:italic">'+esc(analysis.recommendation||'')+'</p>' +
+      '</div>' +
+      '<div class="ok-msg" style="margin-bottom:16px">ID: <b id="myId">'+esc(S.teacherId)+'</b> — saqlang! Keyingi safar kirish uchun kerak.</div>' +
+      '<button class="btn-primary" id="toExamBtn"><span>🧠 Imtihonga o\'tish →</span></button>' +
+      '</div>';
+
+    document.getElementById('toExamBtn').onclick = function() { startExam(); };
+  }
+
+  /* --- Exam Intro --- */
+  function showExamIntro() {
+    S.step = 'exam';
+    app.innerHTML = '<div class="panel anim">' +
+      stepsHtml('exam') +
+      '<div class="panel-title">AI Imtihon</div>' +
+      '<p class="panel-sub">Mutaxassisligingiz bo\'yicha 5 ta savol beriladi. Har bir savol uchun <b>30 soniya</b> vaqt ajratiladi.</p>' +
+      '<div class="ai-card" style="margin-bottom:20px">' +
+        '<div style="display:flex;gap:16px;align-items:center">' +
+          '<div style="font-size:36px">🎯</div>' +
+          '<div>' +
+            '<div style="font-weight:700;margin-bottom:4px">Imtihon qoidalari</div>' +
+            '<ul style="list-style:none;font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:4px">' +
+              '<li>• 5 ta test savol, har biri 30 soniya</li>' +
+              '<li>• AI mutaxassisligingizga mos savollar tuzadi</li>' +
+              '<li>• 60% va undan yuqori natijada o\'tasiz</li>' +
+              '<li>• Natijalar admin ko\'rib chiqadi</li>' +
+            '</ul>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="err-msg" id="examErr"></div>' +
+      '<button class="btn-primary" id="startExamBtn"><span>🚀 Imtihonni boshlash</span></button>' +
+      '</div>';
+
+    document.getElementById('startExamBtn').onclick = function() { startExam(); };
+  }
+
+  function startExam() {
+    var btn = document.getElementById('startExamBtn');
+    if (btn) { btn.disabled=true; btn.innerHTML='<span class="spin"></span> Savollar tayyorlanmoqda…'; }
+    var errEl = document.getElementById('examErr');
+    if (errEl) errEl.textContent = '';
+
+    post('/api/teacher/exam/generate', { teacherId: S.teacherId, specialty: S.teacher && S.teacher.specialty })
+      .then(function(j) {
+        if (j.error || !j.questions) {
+          if (errEl) errEl.textContent = j.error || 'Savollar yuklanmadi'; if (btn) { btn.disabled=false; btn.innerHTML='<span>🚀 Imtihonni boshlash</span>'; }
+          return;
+        }
+        S.examQuestions = j.questions;
+        S.examAnswers = new Array(j.questions.length).fill(undefined);
+        S.examChecked = false;
+        showExam();
+      })
+      .catch(function() { if (errEl) errEl.textContent = 'Server xatosi.'; if (btn) { btn.disabled=false; btn.innerHTML='<span>🚀 Imtihonni boshlash</span>'; } });
+  }
+
+  /* --- Exam screen --- */
+  var examTimers = [];
+  function showExam() {
+    examTimers.forEach(clearInterval);
+    examTimers = [];
+    S.step = 'exam';
+    var qs = S.examQuestions;
+    app.innerHTML = '<div class="panel anim">' +
+      stepsHtml('exam') +
+      '<div class="panel-title">Imtihon ✏️</div>' +
+      '<p class="panel-sub" id="examStatus">0 / '+qs.length+' ta savol javoblandi</p>' +
+      '<div class="timer-bar"><div class="timer-fill" id="timerFill" style="width:100%"></div></div>' +
+      '<div class="exam-wrap" id="examWrap">' +
+        qs.map(function(q, qi) {
+          return '<div class="q-card" id="qcard'+qi+'">' +
+            '<div class="q-num">'+( qi+1)+'-savol</div>' +
+            '<div class="q-text">'+esc(q.q)+'</div>' +
+            '<div class="q-opts" id="qopts'+qi+'">' +
+              q.options.map(function(opt, oi) {
+                return '<button class="q-opt" data-qi="'+qi+'" data-oi="'+oi+'">' +
+                  '<span class="opt-key">'+'ABCD'[oi]+'</span>' +
+                  '<span>'+esc(opt)+'</span>' +
+                '</button>';
+              }).join('') +
+            '</div>' +
+          '</div>';
+        }).join('') +
+      '</div>' +
+      '<div class="err-msg" id="examSubmitErr" style="margin-top:12px"></div>' +
+      '<button class="btn-primary" id="submitExamBtn" disabled style="margin-top:16px"><span>Imtihonni topshirish →</span></button>' +
+      '</div>';
+
+    // Start per-question timers
+    var SECS = 30;
+    var totalSecs = SECS * qs.length;
+    var elapsed = 0;
+    var fill = document.getElementById('timerFill');
+
+    var globalTimer = setInterval(function() {
+      elapsed++;
+      var pct = Math.max(0, 100 - (elapsed / totalSecs * 100));
+      fill.style.width = pct + '%';
+      if (pct < 20) fill.classList.add('urgent');
+      if (elapsed >= totalSecs) {
+        clearInterval(globalTimer);
+        submitExam();
+      }
+    }, 1000);
+    examTimers.push(globalTimer);
+
+    // Click handlers
+    document.getElementById('examWrap').addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-qi]');
+      if (!btn) return;
+      var qi = +btn.dataset.qi, oi = +btn.dataset.oi;
+      S.examAnswers[qi] = oi;
+      var opts = document.getElementById('qopts'+qi).querySelectorAll('.q-opt');
+      opts.forEach(function(o, i) { o.classList.toggle('sel', i===oi); });
+      var answered = S.examAnswers.filter(function(x){ return x !== undefined; }).length;
+      var status = document.getElementById('examStatus');
+      if (status) status.textContent = answered + ' / ' + qs.length + ' ta savol javoblandi';
+      var sb = document.getElementById('submitExamBtn');
+      if (sb) sb.disabled = (answered < qs.length);
+    });
+
+    document.getElementById('submitExamBtn').onclick = function() { submitExam(); };
+  }
+
+  function submitExam() {
+    examTimers.forEach(clearInterval); examTimers = [];
+    var btn = document.getElementById('submitExamBtn');
+    if (btn) { btn.disabled=true; btn.innerHTML='<span class="spin"></span> Baholanmoqda…'; }
+    var errEl = document.getElementById('examSubmitErr');
+
+    post('/api/teacher/exam/submit', { teacherId: S.teacherId, answers: S.examAnswers })
+      .then(function(j) {
+        if (j.error) { if (errEl) errEl.textContent = j.error; if (btn) { btn.disabled=false; btn.innerHTML='<span>Imtihonni topshirish →</span>'; } return; }
+        S.examResult = j.result;
+        showExamResult(j.result);
+      })
+      .catch(function() { if (errEl) errEl.textContent = 'Server xatosi.'; if (btn) { btn.disabled=false; btn.innerHTML='<span>Imtihonni topshirish →</span>'; } });
+  }
+
+  /* --- Exam Result --- */
+  function showExamResult(result) {
+    S.step = 'exam_result';
+    var passed = result.passed;
+    app.innerHTML = '<div class="panel anim">' +
+      stepsHtml('exam_result') +
+      '<div class="panel-title">Imtihon natijasi</div>' +
+      '<div class="result-banner '+(passed?'pass':'fail')+'">' +
+        '<div class="result-score">'+result.score+'%</div>' +
+        '<div style="font-size:15px;font-weight:600;margin:8px 0">'+(passed ? '🎉 Imtihondan o\'tdingiz!' : '😔 Imtihondan o\'ta olmadingiz')+'</div>' +
+        '<p style="font-size:13px;opacity:.7">'+esc(result.feedback||'')+'</p>' +
+      '</div>' +
+
+      (result.details ? '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">' +
+        result.details.map(function(d, i) {
+          return '<div class="ai-card" style="padding:12px 16px;display:flex;align-items:flex-start;gap:10px">' +
+            '<span style="font-size:16px;flex-shrink:0">'+(d.correct?'✅':'❌')+'</span>' +
+            '<div><div style="font-size:13px;font-weight:600;margin-bottom:2px">'+esc(d.q)+'</div>' +
+            '<div style="font-size:12px;color:var(--muted)">'+esc(d.explanation||'')+'</div></div>' +
+          '</div>';
+        }).join('') +
+      '</div>' : '') +
+
+      '<div class="ai-card" style="margin-bottom:20px">' +
+        '<div style="font-size:13px;color:var(--muted)">📋 Natijangiz admin ko\'rib chiqmoqda. 24-48 soat ichida qaror qilinadi.</div>' +
+      '</div>' +
+      '<button class="btn-primary" id="toWaitBtn"><span>Holatni kuzatish →</span></button>' +
+      '</div>';
+
+    document.getElementById('toWaitBtn').onclick = function() { showWaiting(); };
+  }
+
+  /* --- Waiting screen --- */
+  function showWaiting() {
+    S.step = 'waiting';
+    var t = S.teacher || {};
+    var statusMap = {
+      pending_exam: { icon: '📝', label: 'Imtihon kutilmoqda', cls: 'pending' },
+      pending_admin: { icon: '⏳', label: 'Admin ko\'rib chiqmoqda', cls: 'pending' },
+      approved: { icon: '✅', label: 'Tasdiqlandi!', cls: 'approved' },
+      rejected: { icon: '❌', label: 'Rad etildi', cls: 'rejected' }
+    };
+    var st = statusMap[t.status] || statusMap.pending_admin;
+
+    app.innerHTML = '<div class="panel anim">' +
+      stepsHtml('waiting') +
+      '<div style="text-align:center">' +
+        '<div class="status-icon '+st.cls+'" style="margin-bottom:16px">'+st.icon+'</div>' +
+        '<div class="panel-title" style="text-align:center">'+st.label+'</div>' +
+        '<p class="panel-sub" style="text-align:center">Admin imtihon va resume natijalaringizni ko\'rib chiqyapti.<br>24–48 soat ichida qaror qilinadi.</p>' +
+      '</div>' +
+      '<div class="ai-card" style="margin:20px 0">' +
+        '<div style="display:flex;justify-content:space-between;margin-bottom:8px">' +
+          '<span class="f-label" style="margin:0">Resume bali</span>' +
+          '<span style="font-weight:700;color:var(--accent)">'+(t.resumeScore||'—')+'/10</span>' +
+        '</div>' +
+        '<div style="display:flex;justify-content:space-between">' +
+          '<span class="f-label" style="margin:0">Imtihon natijasi</span>' +
+          '<span style="font-weight:700;color:var(--accent2)">'+(t.examScore!=null?t.examScore+'%':'—')+'</span>' +
+        '</div>' +
+        (t.adminNote ? '<div style="margin-top:12px;font-size:13px;color:var(--muted)">Admin izohi: '+esc(t.adminNote)+'</div>' : '') +
+      '</div>' +
+      '<p style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:16px">ID: <b>'+esc(S.teacherId)+'</b></p>' +
+      '<button class="btn-primary" id="refreshBtn" style="margin-bottom:12px"><span>🔄 Holatni yangilash</span></button>' +
+      '<div style="text-align:center"><button class="btn-ghost" id="logoutBtn">Chiqish</button></div>' +
+      '</div>';
+
+    document.getElementById('refreshBtn').onclick = function() {
+      var btn = document.getElementById('refreshBtn');
+      btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
+      fetch(API + '/api/teacher/status/' + S.teacherId).then(function(r){return r.json();}).then(function(j){
+        S.teacher = j;
+        routeByStatus(j.status);
+      }).catch(function(){ btn.disabled=false; btn.innerHTML='<span>🔄 Holatni yangilash</span>'; });
+    };
+    document.getElementById('logoutBtn').onclick = function() { doLogout(); };
+  }
+
+  /* --- Rejected --- */
+  function showRejected() {
+    var t = S.teacher || {};
+    app.innerHTML = '<div class="panel anim">' +
+      '<div style="text-align:center;padding:20px 0">' +
+        '<div class="status-icon rejected" style="margin:0 auto 20px">❌</div>' +
+        '<div class="panel-title">Ariza rad etildi</div>' +
+        '<p class="panel-sub" style="text-align:center">Afsuski, arizangiz qabul qilinmadi.</p>' +
+        (t.adminNote ? '<div class="ai-card" style="margin:16px 0;text-align:left"><b style="font-size:13px">Admin izohi:</b><p style="font-size:14px;color:var(--muted);margin-top:6px">'+esc(t.adminNote)+'</p></div>' : '') +
+        '<button class="btn-primary" id="retryBtn" style="max-width:280px;margin:16px auto 0"><span>Qayta ariza berish</span></button>' +
+      '</div>' +
+      '</div>';
+    document.getElementById('retryBtn').onclick = function() { doLogout(); showRegister(); };
+  }
+
+  /* --- Dashboard --- */
+  function showDashboard() {
+    S.step = 'dashboard';
+    var myLessons = S.myLessons || [];
+    var t = S.teacher || {};
+    var totalLessons = myLessons.length;
+    var uploaded = myLessons.filter(function(l){ return l.status==='uploaded'; }).length;
+
+    app.innerHTML = '<div class="panel anim" style="max-width:720px">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">' +
+        '<div>' +
+          '<div class="panel-title" style="margin-bottom:0">Salom, '+esc(t.name||'O\'qituvchi')+'! 👋</div>' +
+          '<p style="font-size:13px;color:var(--muted)">'+esc(t.specialty||'')+'</p>' +
+        '</div>' +
+        '<span class="chip ok">✅ Tasdiqlangan</span>' +
+      '</div>' +
+
+      '<div class="db-kpis">' +
+        '<div class="db-kpi c-purple"><span class="v">'+totalLessons+'</span><span class="l">Jami darslar</span></div>' +
+        '<div class="db-kpi c-cyan"><span class="v">'+uploaded+'</span><span class="l">Serverda</span></div>' +
+        '<div class="db-kpi c-green"><span class="v">'+(t.resumeScore||'—')+'/10</span><span class="l">Resume bali</span></div>' +
+        '<div class="db-kpi c-yellow"><span class="v">'+(t.examScore!=null?t.examScore+'%':'—')+'</span><span class="l">Imtihon</span></div>' +
+      '</div>' +
+
+      '<div class="db-tabs">' +
+        '<button class="db-tab'+(S.dashTab==='publish'?' active':'') +'" data-tab="publish">📤 Dars yuklash</button>' +
+        '<button class="db-tab'+(S.dashTab==='lessons'?' active':'') +'" data-tab="lessons">📚 Darslarim</button>' +
+      '</div>' +
+
+      '<div id="dashContent"></div>' +
+
+      '<div style="text-align:right;margin-top:20px"><button class="btn-ghost" id="dbLogout">Chiqish</button></div>' +
+      '</div>';
+
+    document.querySelectorAll('.db-tab').forEach(function(btn) {
+      btn.onclick = function() { S.dashTab = btn.dataset.tab; showDashboard(); };
+    });
+    document.getElementById('dbLogout').onclick = function() { doLogout(); };
+
+    renderDashContent();
+  }
+
+  function renderDashContent() {
+    var el = document.getElementById('dashContent');
+    if (!el) return;
+    if (S.dashTab === 'publish') {
+      el.innerHTML = '<div class="pub-form">' +
+        '<div class="f-group"><label class="f-label">Dars nomi</label><input class="f-input" id="dbTitle" placeholder="Masalan: Python o\'zgaruvchilar" required></div>' +
+        '<div class="f-row">' +
+          '<div class="f-group"><label class="f-label">Kurs nomi</label><input class="f-input" id="dbCourse" placeholder="Kurs nomi"></div>' +
+          '<div class="f-group"><label class="f-label">Narxi (so\'m, ixtiyoriy)</label><input class="f-input" id="dbPrice" type="number" min="0" placeholder="25000"></div>' +
+        '</div>' +
+        '<div class="f-group"><label class="f-label">Transkript (00:15 matn formatida)</label><textarea class="f-textarea" id="dbTranscript" rows="6" placeholder="00:00 Salom, bugun..."></textarea></div>' +
+        '<div class="f-group"><label class="f-label">Video (MP4/WebM, ixtiyoriy)</label><input class="f-input" id="dbVideo" type="file" accept="video/*" style="padding:10px"></div>' +
+        '<div class="err-msg" id="dbErr"></div>' +
+        '<button class="btn-primary" id="dbPubBtn"><span>📤 Nashr qilish</span></button>' +
+        '</div>';
+
+      document.getElementById('dbPubBtn').onclick = function() { publishLesson(); };
+    } else {
+      var lessons = S.myLessons;
+      if (!lessons.length) {
+        el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted)"><div style="font-size:36px;margin-bottom:12px">📚</div><p>Hali dars yuklamadingiz.<br>«Dars yuklash» bo\'limidan boshlang.</p></div>';
+      } else {
+        el.innerHTML = '<div style="display:flex;flex-direction:column;gap:10px">' +
+          lessons.map(function(l) {
+            return '<div class="lesson-card">' +
+              '<div class="l-info"><div class="nm">'+esc(l.title)+'</div><div class="meta">'+esc(l.courseTitle||'')+(l.duration?' · '+mmss(l.duration):'')+'</div></div>' +
+              '<div style="display:flex;align-items:center;gap:8px">' +
+                '<span class="chip '+(l.status==='uploaded'?'ok':'warn')+'">'+(l.status==='uploaded'?'Serverda':'Mahalliy')+'</span>' +
+              '</div>' +
+            '</div>';
+          }).join('') +
+        '</div>';
+      }
+    }
+  }
+
+  function publishLesson() {
+    var title = (document.getElementById('dbTitle')||{}).value || '';
+    var courseTitle = (document.getElementById('dbCourse')||{}).value || '';
+    var price = +(document.getElementById('dbPrice')||{}).value || 0;
+    var transcript = (document.getElementById('dbTranscript')||{}).value || '';
+    var videoInput = document.getElementById('dbVideo');
+    var errEl = document.getElementById('dbErr');
+    if (!title.trim()) { if (errEl) errEl.textContent = 'Dars nomini kiriting'; return; }
+    if (!transcript.trim()) { if (errEl) errEl.textContent = 'Transkript kiriting'; return; }
+    if (errEl) errEl.textContent = '';
+    var btn = document.getElementById('dbPubBtn');
+    btn.disabled=true; btn.innerHTML='<span class="spin"></span> Yuklanmoqda…';
+
+    // Parse transcript
+    var segs = [];
+    transcript.split('\n').forEach(function(line) {
+      var m = line.match(/^(\d+):(\d+)\s+(.*)/);
+      if (m) segs.push({ t: +m[1]*60 + +m[2], text: m[3].trim() });
+    });
+    if (!segs.length) {
+      var paras = transcript.split('\n\n').filter(Boolean);
+      segs = paras.map(function(p, i){ return { t: i*15, text: p.trim() }; });
+    }
+
+    var lessonId = 'tr-l-' + Date.now().toString(36);
+    var lesson = {
+      id: lessonId, title: title.trim(),
+      courseTitle: courseTitle.trim() || (S.teacher&&S.teacher.specialty)||'Umumiy',
+      courseId: 'tr-c-' + ((S.teacher&&S.teacher.id)||'x'),
+      author: (S.teacher&&S.teacher.name)||'O\'qituvchi',
+      segments: segs, duration: segs.length ? segs[segs.length-1].t + 15 : 60,
+      price: price, status: 'local', createdAt: Date.now()
+    };
+
+    var file = videoInput && videoInput.files && videoInput.files[0];
+
+    function finish(videoUrl) {
+      if (videoUrl) lesson.video = videoUrl;
+      post('/api/sync', {
+        device: { id: S.teacherId, name: S.teacher&&S.teacher.name||'Teacher' },
+        events: [{ id: 'e-'+lessonId, type: 'lesson_published', ts: Date.now(), data: lesson }]
+      }).then(function() {
+        lesson.status = 'uploaded';
+        S.myLessons.unshift(lesson);
+        btn.disabled=false; btn.innerHTML='<span>📤 Nashr qilish</span>';
+        if (errEl) { errEl.style.color='var(--green)'; errEl.textContent='✅ Dars muvaffaqiyatli nashr qilindi!'; }
+        setTimeout(function(){ S.dashTab='lessons'; showDashboard(); }, 1200);
+      }).catch(function() {
+        S.myLessons.unshift(lesson);
+        btn.disabled=false; btn.innerHTML='<span>📤 Nashr qilish</span>';
+        if (errEl) { errEl.style.color='var(--green)'; errEl.textContent='✅ Mahalliy saqlandi. Internet qaytganda yuboriladi.'; }
+      });
+    }
+
+    if (file) {
+      var fd = file;
+      fetch(API + '/api/upload?id=' + lessonId, {
+        method: 'POST', headers: { 'Content-Type': file.type }, body: file
+      }).then(function(r){ return r.json(); }).then(function(j){ finish(j.url); }).catch(function(){ finish(null); });
+    } else {
+      finish(null);
+    }
+  }
+
+  function doLogout() {
+    S.teacher = null; S.teacherId = null;
+    localStorage.removeItem('dt_teacher_id');
+    showLogin();
+  }
+
+  /* --- Boot --- */
+  function boot() {
+    if (S.teacherId) {
+      // Try to load status
+      fetch(API + '/api/teacher/status/' + S.teacherId)
+        .then(function(r){ return r.json(); })
+        .then(function(j){
+          if (j.id) { S.teacher = j; routeByStatus(j.status); }
+          else showLogin();
+        })
+        .catch(function(){ showLogin(); });
+    } else {
+      showLogin();
+    }
+  }
+  boot();
+})();
+</script>
+</body>
+</html>
