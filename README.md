@@ -120,3 +120,4 @@ Hozirgi versiya MVP. Ishlab chiqarishga chiqishdan oldin quyidagilarni qo‘shis
 - Kompaniya portaliga haqiqiy ma’lumotlar bazasi (hozir namuna ma’lumotlar).
 
 Ilovadagi namuna kurslar, muallif ko‘rsatkichlari va "Demo Kompaniya MChJ" ma’lumotlari — demo uchun.
+"# dreamteach" 
