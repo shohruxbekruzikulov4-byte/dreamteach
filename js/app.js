@@ -223,7 +223,7 @@
     var h = decodeURIComponent((location.hash || '').replace(/^#/, ''));
     if (h.indexOf('dars-') === 0) return { v: 'dars', id: h.slice(5) };
     if (h.indexOf('kurs-') === 0) return { v: 'kurs', id: h.slice(5) };
-    if (['natijalar', 'muallif', 'kompaniya'].indexOf(h) >= 0) return { v: h, id: '' };
+    if (['natijalar', 'kompaniya'].indexOf(h) >= 0) return { v: h, id: '' };
     return { v: 'kurslar', id: '' };
   }
   window.addEventListener('hashchange', function () { leaveLesson(); S.route = parseHash(); render(); window.scrollTo(0, 0); });
@@ -237,7 +237,6 @@
     if (v === 'kurs') return viewCourse(S.route.id);
     if (v === 'dars') return viewLesson(S.route.id);
     if (v === 'natijalar') return viewProgress();
-    if (v === 'muallif') return viewAuthor();
     if (v === 'kompaniya') return viewCompany();
     return viewHome();
   }
@@ -829,6 +828,123 @@
   document.addEventListener('visibilitychange', function () { if (document.hidden) saveProgress(true); });
 
   /* ---------------- boot ---------------- */
+  /* ---------------- role selection / login screen ---------------- */
+  function showRoleScreen() {
+    /* hide header & tabbar while login screen is shown */
+    document.querySelector('.top').style.display = 'none';
+    document.getElementById('tabbar').style.display = 'none';
+
+    app.innerHTML =
+      '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(ellipse 70% 50% at 20% 10%,rgba(108,99,255,.14) 0%,transparent 60%),radial-gradient(ellipse 50% 40% at 80% 80%,rgba(0,229,255,.08) 0%,transparent 60%),var(--bg,#0a1628)">' +
+        '<div style="width:100%;max-width:440px;animation:fadeUp .4s ease both">' +
+          '<div style="text-align:center;margin-bottom:32px">' +
+            '<div style="width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,#6c63ff,#00e5ff);display:inline-flex;align-items:center;justify-content:center;font-size:30px;font-weight:800;color:#fff;box-shadow:0 8px 32px rgba(108,99,255,.4);margin-bottom:14px">D</div>' +
+            '<h1 style="font-size:26px;font-weight:800;margin-bottom:4px">Dream<span style="color:#00e5ff">Teach</span></h1>' +
+            '<p style="color:#7a8498;font-size:14px">Platformaga kirish uchun rolingizni tanlang</p>' +
+          '</div>' +
+
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px">' +
+            '<button id="roleStudent" style="padding:28px 16px;border-radius:18px;border:2px solid rgba(255,255,255,.09);background:rgba(255,255,255,.04);cursor:pointer;transition:all .2s;text-align:center;backdrop-filter:blur(12px)">' +
+              '<div style="font-size:40px;margin-bottom:10px">🎓</div>' +
+              '<div style="font-size:16px;font-weight:700;color:#e8eaf6;margin-bottom:4px">O\'quvchi</div>' +
+              '<div style="font-size:12px;color:#7a8498">Kurslarni o\'rganish</div>' +
+            '</button>' +
+            '<button id="roleTeacher" style="padding:28px 16px;border-radius:18px;border:2px solid rgba(255,255,255,.09);background:rgba(255,255,255,.04);cursor:pointer;transition:all .2s;text-align:center;backdrop-filter:blur(12px)">' +
+              '<div style="font-size:40px;margin-bottom:10px">👨‍🏫</div>' +
+              '<div style="font-size:16px;font-weight:700;color:#e8eaf6;margin-bottom:4px">O\'qituvchi</div>' +
+              '<div style="font-size:12px;color:#7a8498">Kurs yaratish va o\'qitish</div>' +
+            '</button>' +
+          '</div>' +
+
+          '<div id="studentLogin" style="display:none;animation:fadeUp .3s ease both">' +
+            '<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:18px;padding:28px;backdrop-filter:blur(20px)">' +
+              '<h2 style="font-size:18px;font-weight:700;margin-bottom:16px">🎓 O\'quvchi kirish</h2>' +
+              '<div style="margin-bottom:14px">' +
+                '<label style="display:block;font-size:12px;font-weight:600;color:#7a8498;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em">Ismingiz</label>' +
+                '<input id="studentName" type="text" placeholder="Masalan: Aziz" maxlength="40" style="width:100%;padding:12px 16px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#e8eaf6;font-size:15px;font-family:inherit;outline:none" />' +
+              '</div>' +
+              '<div style="margin-bottom:18px">' +
+                '<label style="display:block;font-size:12px;font-weight:600;color:#7a8498;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em">Parol</label>' +
+                '<input id="studentPass" type="password" placeholder="Parol kiriting" style="width:100%;padding:12px 16px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#e8eaf6;font-size:15px;font-family:inherit;outline:none" />' +
+              '</div>' +
+              '<div id="studentErr" style="color:#ff4f6a;font-size:13px;min-height:18px;margin-bottom:8px"></div>' +
+              '<button id="studentLoginBtn" style="width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#6c63ff,#9b6cff);color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 20px rgba(108,99,255,.4);transition:all .15s">Kirish →</button>' +
+            '</div>' +
+          '</div>' +
+
+        '</div>' +
+      '</div>';
+
+    /* hover effects */
+    ['roleStudent', 'roleTeacher'].forEach(function(id) {
+      var btn = document.getElementById(id);
+      btn.addEventListener('mouseenter', function() { btn.style.borderColor = '#6c63ff'; btn.style.background = 'rgba(108,99,255,.08)'; btn.style.transform = 'translateY(-2px)'; });
+      btn.addEventListener('mouseleave', function() { btn.style.borderColor = 'rgba(255,255,255,.09)'; btn.style.background = 'rgba(255,255,255,.04)'; btn.style.transform = 'none'; });
+    });
+
+    /* teacher → redirect */
+    document.getElementById('roleTeacher').onclick = function() {
+      location.href = 'teacher.html';
+    };
+
+    /* student → show login form */
+    document.getElementById('roleStudent').onclick = function() {
+      document.getElementById('roleStudent').style.borderColor = '#6c63ff';
+      document.getElementById('roleStudent').style.background = 'rgba(108,99,255,.12)';
+      document.getElementById('roleTeacher').style.opacity = '0.4';
+      document.getElementById('roleTeacher').style.pointerEvents = 'none';
+      document.getElementById('studentLogin').style.display = 'block';
+      document.getElementById('studentName').focus();
+    };
+
+    /* student login submit */
+    function doStudentLogin() {
+      var name = document.getElementById('studentName').value.trim();
+      var pass = document.getElementById('studentPass').value;
+      var err = document.getElementById('studentErr');
+      if (!name) { err.textContent = 'Ismingizni kiriting'; return; }
+      if (!pass) { err.textContent = 'Parolni kiriting'; return; }
+      if (pass.length < 4) { err.textContent = 'Parol kamida 4 ta belgi bo\'lishi kerak'; return; }
+      /* save profile with role */
+      S.profile.name = name;
+      S.profile.role = 'student';
+      S.profile.loggedIn = true;
+      S.profile.passHash = simpleHash(pass);
+      Store.put('kv', 'profile', S.profile);
+      startStudentApp();
+    }
+    document.getElementById('studentLoginBtn').onclick = doStudentLogin;
+    document.getElementById('studentPass').addEventListener('keydown', function(e) { if (e.key === 'Enter') doStudentLogin(); });
+    document.getElementById('studentName').addEventListener('keydown', function(e) { if (e.key === 'Enter') document.getElementById('studentPass').focus(); });
+  }
+
+  function simpleHash(s) {
+    var h = 0;
+    for (var i = 0; i < s.length; i++) { h = ((h << 5) - h) + s.charCodeAt(i); h |= 0; }
+    return h;
+  }
+
+  function startStudentApp() {
+    /* show header & tabbar */
+    document.querySelector('.top').style.display = '';
+    document.getElementById('tabbar').style.display = '';
+    indexCatalog(); S.route = parseHash(); render(); refreshOutbox();
+    Cloud.detect().then(function () {
+      paintStatus();
+      if (S.cur) paintChips();
+      if (S.route.v === 'natijalar') render();
+      if (!isOnline()) return;
+      flush(); processPending();
+      return Cloud.catalog().then(function (j) {
+        if (!j || !j.lessons) return;
+        var mineIds = {}; S.userLessons.forEach(function (l) { mineIds[l.id] = 1; });
+        S.remoteLessons = j.lessons.filter(function (l) { return !mineIds[l.id]; });
+        Store.put('kv', 'remoteLessons', S.remoteLessons); indexCatalog();
+        if (S.route.v === 'kurslar') render();
+      });
+    });
+  }
+
   function boot() {
     Store.init().then(function () {
       return Promise.all([Store.get('kv', 'profile'), Store.all('progress'), Store.get('kv', 'quizBest'), Store.all('lessons'), Store.get('kv', 'lastSync'),
@@ -842,21 +958,12 @@
       S.remoteLessons = r[7] || [];
       return loadCatalog();
     }).then(function () {
-      indexCatalog(); S.route = parseHash(); render(); refreshOutbox();
-      return Cloud.detect();
-    }).then(function () {
-      paintStatus();
-      if (S.cur) paintChips();
-      if (S.route.v === 'natijalar' || S.route.v === 'muallif') render();
-      if (!isOnline()) return;
-      flush(); processPending();
-      return Cloud.catalog().then(function (j) {
-        if (!j || !j.lessons) return;
-        var mineIds = {}; S.userLessons.forEach(function (l) { mineIds[l.id] = 1; });
-        S.remoteLessons = j.lessons.filter(function (l) { return !mineIds[l.id]; });
-        Store.put('kv', 'remoteLessons', S.remoteLessons); indexCatalog();
-        if (S.route.v === 'kurslar') render();
-      });
+      /* check if user already logged in */
+      if (S.profile.loggedIn && S.profile.role === 'student') {
+        startStudentApp();
+      } else {
+        showRoleScreen();
+      }
     }).catch(function (e) { app.innerHTML = '<div class="card">Ilovani ochishda xato: ' + esc(e && e.message) + '</div>'; });
     if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
       try { navigator.serviceWorker.register('sw.js').catch(function () {}); } catch (e) {}
