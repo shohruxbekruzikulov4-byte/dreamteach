@@ -188,6 +188,35 @@ async function aiGradeExam({ questions, answers, specialty }) {
   return { ...j, passed: (j.score || 0) >= 60 };
 }
 
+/* ---------------- AI: transcript generator ---------------- */
+const TRANSCRIPT_SYSTEM = "Siz DreamTeach ta'lim platformasining professional pedagogik AI yordamchisisiz. " +
+  "Berilgan dars mavzusi va kursi bo'yicha video dars uchun mukammal, tushunarli va pedagogik jihatdan to'g'ri transkript (dars matni) tuzib bering. " +
+  "Qoidalar:\n" +
+  "1. O'zbek tilida (lotin alifbosida) yozing.\n" +
+  "2. Har bir satr mm:ss (masalan, 00:00, 00:25, 01:10) formati bilan boshlansin.\n" +
+  "3. Berilgan umumiy davomiylikka mos qilib vaqt oraliqlarini taqsimlang (00:00 dan to yakunigacha).\n" +
+  "4. Darsda kirish, mavzuning mohiyati, amaliy misollar, muhim tavsiyalar va xulosa bo'lsin.\n" +
+  "5. Faqat transkript matnini qaytaring. Hech qanday sarlavha, izoh yoki markdown (**, ##) ishlatmang.";
+
+async function aiGenerateTranscript({ title, courseTitle, specialty, duration }) {
+  const dur = Math.max(45, Math.min(3600, +duration || 180));
+  if (!KEY || MOCK) {
+    const s1 = Engine.mmss(0);
+    const s2 = Engine.mmss(Math.round(dur * 0.15));
+    const s3 = Engine.mmss(Math.round(dur * 0.35));
+    const s4 = Engine.mmss(Math.round(dur * 0.60));
+    const s5 = Engine.mmss(Math.round(dur * 0.85));
+    return `${s1} Assalomu alaykum va xush kelibsiz! Bugungi video darsimiz mavzusi: "${title}". Ushbu dars davomida mavzuning eng muhim asoslarini batafsil o'rganamiz.\n` +
+      `${s2} Eng avvalo, ${title} tushunchasining mohiyati va u nima uchun kerakligini ko'rib chiqaylik. Bu nazariy va amaliy jihatdan eng muhim qadamdir.\n` +
+      `${s3} Endi esa bevosita amaliyotga o'tamiz. Misol tariqasida ushbu mavzuni bosqichma-bosqich qo'llab ko'ramiz va asosiy printsiplarini tahlil qilamiz.\n` +
+      `${s4} Ko'p uchraydigan odatiy xatolar va ulardan qanday qochish mumkinligiga e'tibor qaratamiz. Bu sizga sifatli natijaga erishishda yordam beradi.\n` +
+      `${s5} Xulosa o'rnida, bugun biz ${title} mavzusini muvaffaqiyatli o'zlashtirdik. Mustahkamlash uchun berilgan topshiriqlarni mustaqil bajarib ko'ring. E'tiboringiz uchun rahmat!`;
+  }
+
+  const prompt = `Dars mavzusi: "${title}"\nKurs/Yo'nalish: "${courseTitle || specialty || 'Umumiy'}"\nVideo davomiyligi: ${dur} soniya (${Engine.mmss(dur)}).\nIltimos, ushbu video uchun 00:00 dan ${Engine.mmss(dur)} gacha taqsimlangan 5-8 qismli to'liq dars transkriptini yozib bering.`;
+  return gemini(TRANSCRIPT_SYSTEM, [{ role: 'user', parts: [{ text: prompt }] }], false);
+}
+
 /* ---------------- helpers ---------------- */
 function send(res, code, obj, headers) {
   const body = typeof obj === 'string' || Buffer.isBuffer(obj) ? obj : JSON.stringify(obj);
@@ -323,22 +352,41 @@ const server = http.createServer(async (req, res) => {
       const b = await readJson(req);
       return send(res, 200, { questions: await aiQuiz(b) });
     }
+    if (p === '/api/ai/transcript' && req.method === 'POST') {
+      const b = await readJson(req);
+      const { title, courseTitle, specialty, duration } = b;
+      if (!title || !title.trim()) return send(res, 400, { error: 'Dars nomi kerak' });
+      try {
+        const text = await aiGenerateTranscript({ title: title.trim(), courseTitle, specialty, duration });
+        return send(res, 200, { ok: true, text });
+      } catch (err) {
+        return send(res, 500, { error: 'AI xatosi: ' + (err.message || 'noma\'lum') });
+      }
+    }
     if (p === '/api/sync' && req.method === 'POST') {
       const b = await readJson(req, 8 * 1024 * 1024);
       const dev = b.device || {}; const events = Array.isArray(b.events) ? b.events.slice(0, 5000) : [];
       let accepted = 0;
-      events.forEach((e) => {
-        if (!e || !e.id) return;
+      for (const e of events) {
+        if (!e || !e.id) continue;
         const key = `${safeId(dev.id)}:${e.id}`;
-        if (db.seen[key] && !/^(p|n|d):/.test(e.id)) return;
+        if (db.seen[key] && !/^(p|n|d):/.test(e.id)) continue;
         db.seen[key] = Date.now(); accepted++;
         db.events.push({ device: safeId(dev.id), user: String(dev.name || e.user || '').slice(0, 60), id: e.id, type: e.type, ts: e.ts, data: e.data, at: Date.now() });
         if (e.type === 'lesson_published' && e.data && e.data.id) {
           const l = Object.assign({}, e.data, { video: e.data.videoUrl || e.data.video || null, status: 'uploaded', author: e.data.author || dev.name });
           delete l.videoUrl; delete l.poster;
+          if (!Array.isArray(l.segments) || !l.segments.length) {
+            try {
+              const raw = await aiGenerateTranscript({ title: l.title, courseTitle: l.courseTitle, duration: l.duration });
+              l.segments = Engine.parseTranscript(raw, l.duration);
+            } catch (err) {
+              l.segments = [{ t: 0, text: l.title }];
+            }
+          }
           db.lessons = db.lessons.filter((x) => x.id !== l.id).concat([l]);
         }
-      });
+      }
       if (db.events.length > 200000) db.events = db.events.slice(-150000);
       db.devices[safeId(dev.id)] = { name: dev.name, last: Date.now() };
       saveDb();

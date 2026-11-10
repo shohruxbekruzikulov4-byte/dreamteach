@@ -902,6 +902,8 @@ body::before {
     renderDashContent();
   }
 
+  var detectedVideoDuration = 0;
+
   function renderDashContent() {
     var el = document.getElementById('dashContent');
     if (!el) return;
@@ -912,13 +914,91 @@ body::before {
           '<div class="f-group"><label class="f-label">Kurs nomi</label><input class="f-input" id="dbCourse" placeholder="Kurs nomi"></div>' +
           '<div class="f-group"><label class="f-label">Narxi (so\'m, ixtiyoriy)</label><input class="f-input" id="dbPrice" type="number" min="0" placeholder="25000"></div>' +
         '</div>' +
-        '<div class="f-group"><label class="f-label">Transkript (00:15 matn formatida)</label><textarea class="f-textarea" id="dbTranscript" rows="6" placeholder="00:00 Salom, bugun..."></textarea></div>' +
-        '<div class="f-group"><label class="f-label">Video (MP4/WebM, ixtiyoriy)</label><input class="f-input" id="dbVideo" type="file" accept="video/*" style="padding:10px"></div>' +
+        '<div class="f-group">' +
+          '<label class="f-label">Video fayl (MP4/WebM/MOV)</label>' +
+          '<input class="f-input" id="dbVideo" type="file" accept="video/*" style="padding:10px">' +
+          '<div id="dbVideoInfo" style="display:none;margin-top:6px;font-size:12px;color:var(--accent2)"></div>' +
+        '</div>' +
+        '<div class="f-group">' +
+          '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">' +
+            '<label class="f-label" style="margin-bottom:0">Transkript (Dars matni va daqiqalari)</label>' +
+            '<button type="button" class="chip ok" id="dbAiGenBtn" style="border:none;cursor:pointer;font-size:12px;padding:4px 12px;display:inline-flex;align-items:center;gap:6px">' +
+              '<span>✨ AI yozsin</span>' +
+            '</button>' +
+          '</div>' +
+          '<textarea class="f-textarea" id="dbTranscript" rows="6" placeholder="Video tanlang yoki dars nomini yozib «✨ AI yozsin» tugmasini bosing (yoki to\'g\'ridan-to\'g\'ri Nashr qilishni bosing — AI avtomatik to\'ldiradi)"></textarea>' +
+          '<div style="font-size:11px;color:var(--muted);margin-top:4px">💡 Transkript kiritmasangiz ham bo\'ladi: Sun\'iy intellekt video va mavzu asosida o\'zi to\'liq yozib chiqadi.</div>' +
+        '</div>' +
         '<div class="err-msg" id="dbErr"></div>' +
         '<button class="btn-primary" id="dbPubBtn"><span>📤 Nashr qilish</span></button>' +
         '</div>';
 
       document.getElementById('dbPubBtn').onclick = function() { publishLesson(); };
+
+      var videoInput = document.getElementById('dbVideo');
+      var videoInfo = document.getElementById('dbVideoInfo');
+      detectedVideoDuration = 0;
+
+      if (videoInput) {
+        videoInput.onchange = function() {
+          var file = videoInput.files && videoInput.files[0];
+          if (!file) return;
+          var titleEl = document.getElementById('dbTitle');
+          if (titleEl && !titleEl.value.trim()) {
+            var clean = file.name.replace(/\.[^/.]+$/, '').replace(/[_-]+/g, ' ').trim();
+            titleEl.value = clean.charAt(0).toUpperCase() + clean.slice(1);
+          }
+          var tempV = document.createElement('video');
+          tempV.preload = 'metadata';
+          tempV.src = URL.createObjectURL(file);
+          tempV.onloadedmetadata = function() {
+            window.URL.revokeObjectURL(tempV.src);
+            detectedVideoDuration = Math.round(tempV.duration) || 0;
+            if (videoInfo) {
+              var mb = (file.size / (1024 * 1024)).toFixed(1);
+              videoInfo.style.display = 'block';
+              videoInfo.innerHTML = '📹 <b>' + esc(file.name) + '</b> · ' + mmss(detectedVideoDuration) + ' · ' + mb + ' MB';
+            }
+          };
+        };
+      }
+
+      var aiGenBtn = document.getElementById('dbAiGenBtn');
+      if (aiGenBtn) {
+        aiGenBtn.onclick = function() {
+          var title = (document.getElementById('dbTitle')||{}).value || '';
+          var course = (document.getElementById('dbCourse')||{}).value || '';
+          var errEl = document.getElementById('dbErr');
+          if (!title.trim()) {
+            if (errEl) { errEl.style.color = 'var(--red)'; errEl.textContent = 'Avval dars nomini kiriting yoki video tanlang'; }
+            return;
+          }
+          aiGenBtn.disabled = true;
+          aiGenBtn.innerHTML = '<span class="spin"></span> 🤖 AI yozmoqda…';
+          if (errEl) { errEl.style.color = 'var(--accent2)'; errEl.textContent = '🤖 Sun\'iy intellekt video mavzusi bo\'yicha transkript tuzmoqda…'; }
+
+          post('/api/ai/transcript', {
+            title: title.trim(),
+            courseTitle: course.trim(),
+            specialty: S.teacher && S.teacher.specialty,
+            duration: detectedVideoDuration || 180
+          }).then(function(res) {
+            aiGenBtn.disabled = false;
+            aiGenBtn.innerHTML = '<span>✨ AI yozsin</span>';
+            if (res.ok && res.text) {
+              var txEl = document.getElementById('dbTranscript');
+              if (txEl) txEl.value = res.text;
+              if (errEl) { errEl.style.color = 'var(--green)'; errEl.textContent = '✅ Transkript AI tomonidan tayyorlandi! Kerak bo\'lsa tahrirlashingiz mumkin.'; }
+            } else {
+              if (errEl) { errEl.style.color = 'var(--red)'; errEl.textContent = res.error || 'AI transkript tuzishda xatolik'; }
+            }
+          }).catch(function() {
+            aiGenBtn.disabled = false;
+            aiGenBtn.innerHTML = '<span>✨ AI yozsin</span>';
+            if (errEl) { errEl.style.color = 'var(--red)'; errEl.textContent = 'Server bilan bog\'lanishda xato'; }
+          });
+        };
+      }
     } else {
       var lessons = S.myLessons;
       if (!lessons.length) {
@@ -938,7 +1018,7 @@ body::before {
     }
   }
 
-  function publishLesson() {
+  async function publishLesson() {
     if (!S.subscription || !S.subscription.active) {
       if (confirm("Kurs va darslarni joylashtirish uchun o'qituvchi obunasi faol bo'lishi kerak.\n\nObuna sotib olish sahifasiga o'tasizmi?")) {
         location.href = '/payment?userId=' + encodeURIComponent(S.teacherId) + '&userType=teacher';
@@ -951,21 +1031,50 @@ body::before {
     var transcript = (document.getElementById('dbTranscript')||{}).value || '';
     var videoInput = document.getElementById('dbVideo');
     var errEl = document.getElementById('dbErr');
-    if (!title.trim()) { if (errEl) errEl.textContent = 'Dars nomini kiriting'; return; }
-    if (!transcript.trim()) { if (errEl) errEl.textContent = 'Transkript kiriting'; return; }
-    if (errEl) errEl.textContent = '';
+    if (!title.trim()) { if (errEl) { errEl.style.color='var(--red)'; errEl.textContent = 'Dars nomini kiriting yoki video tanlang'; } return; }
+
     var btn = document.getElementById('dbPubBtn');
-    btn.disabled=true; btn.innerHTML='<span class="spin"></span> Yuklanmoqda…';
+    btn.disabled = true;
+
+    // AI AUTO-TRANSCRIPT: If transcript is empty, generate it automatically
+    if (!transcript.trim()) {
+      btn.innerHTML = '<span class="spin"></span> 🤖 AI transkript tuzmoqda…';
+      if (errEl) { errEl.style.color = 'var(--accent2)'; errEl.textContent = '🤖 Transkript kiritilmagan — AI uni avtomatik tuzmoqda…'; }
+      try {
+        var aiRes = await post('/api/ai/transcript', {
+          title: title.trim(),
+          courseTitle: courseTitle.trim(),
+          specialty: S.teacher && S.teacher.specialty,
+          duration: detectedVideoDuration || 180
+        });
+        if (aiRes && aiRes.text) {
+          transcript = aiRes.text;
+          var txEl = document.getElementById('dbTranscript');
+          if (txEl) txEl.value = transcript;
+        }
+      } catch (e) {
+        transcript = '00:00 ' + title.trim();
+      }
+    }
+
+    if (errEl) { errEl.style.color='var(--accent2)'; errEl.textContent = 'Dars nashr qilinmoqda…'; }
+    btn.innerHTML='<span class="spin"></span> Yuklanmoqda…';
 
     // Parse transcript
     var segs = [];
     transcript.split('\n').forEach(function(line) {
-      var m = line.match(/^(\d+):(\d+)\s+(.*)/);
-      if (m) segs.push({ t: +m[1]*60 + +m[2], text: m[3].trim() });
+      var m = line.match(/^\[?(?:(\d+):)?(\d{1,2}):(\d{2})\]?\s*(.*)/);
+      if (m) {
+        var sec = +m[2]*60 + +m[3];
+        segs.push({ t: sec, text: m[4].trim() });
+      }
     });
     if (!segs.length) {
       var paras = transcript.split('\n\n').filter(Boolean);
       segs = paras.map(function(p, i){ return { t: i*15, text: p.trim() }; });
+    }
+    if (!segs.length) {
+      segs = [{ t: 0, text: title.trim() }];
     }
 
     var lessonId = 'tr-l-' + Date.now().toString(36);
@@ -974,7 +1083,8 @@ body::before {
       courseTitle: courseTitle.trim() || (S.teacher&&S.teacher.specialty)||'Umumiy',
       courseId: 'tr-c-' + ((S.teacher&&S.teacher.id)||'x'),
       author: (S.teacher&&S.teacher.name)||'O\'qituvchi',
-      segments: segs, duration: segs.length ? segs[segs.length-1].t + 15 : 60,
+      segments: segs,
+      duration: detectedVideoDuration || (segs.length ? segs[segs.length-1].t + 15 : 60),
       price: price, status: 'local', createdAt: Date.now()
     };
 
@@ -999,7 +1109,6 @@ body::before {
     }
 
     if (file) {
-      var fd = file;
       fetch(API + '/api/upload?id=' + lessonId, {
         method: 'POST', headers: { 'Content-Type': file.type }, body: file
       }).then(function(r){ return r.json(); }).then(function(j){ finish(j.url); }).catch(function(){ finish(null); });
